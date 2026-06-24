@@ -8,7 +8,7 @@ This repository contains the research code for our IROS 2026 paper:
 
 > **Calousel: Extrinsic Calibration of Non-overlapping Multi-camera Systems from Pure Rotation**
 
-[Paper](#) | [Video]((https://www.youtube.com/watch?v=mcNS33hJPzg)) | [BibTeX](#citation)
+[Paper](#) | [Video](https://www.youtube.com/watch?v=mcNS33hJPzg) | [BibTeX](#citation)
 
 <p align="center">
   <img src="teaser/calousel_teaser.gif" alt="Calousel full-scale vehicle demonstration" width="900">
@@ -28,7 +28,7 @@ This repository contains the research code for our IROS 2026 paper:
   - [Overview](#overview)
   - [Installation](#installation)
     - [Option 1) Build with Docker](#option-1-build-with-docker)
-    - [Option 2) Naive build](#option-2-naive-build)
+    - [Option 2) Native build](#option-2-native-build)
   - [Run The Examples](#run-the-examples)
     - [Fast Smoke Test](#fast-smoke-test)
     - [Full Testbed Example](#full-testbed-example)
@@ -85,7 +85,7 @@ docker run --rm -it \
 
 Edits under `examples/` are reflected immediately when mounted as above; C++ source changes require rebuilding the image.
 
-### Option 2) Naive build
+### Option 2) Native build
 
 Native build is also possible on Ubuntu 22.04 with ROS 2 Humble, Ceres Solver 2.2.0 or newer, OpenCV, Eigen3, yaml-cpp, Sophus, and the Python packages `numpy`, `PyYAML`, `scipy`, `matplotlib`, and `opencv-python` or their apt equivalents.
 
@@ -120,7 +120,7 @@ To regenerate every intermediate result, run DiscoCal, download the two testbed 
 examples/scripts/run_discocal_examples.sh
 ```
 
-Download the sample rosbags here: [Sample rosbags](#)
+Download the sample rosbags here: [Sample rosbags](https://drive.google.com/drive/folders/1v_M7iIofFpyVdF-UFBko6-ClByEUngir?usp=drive_link)
 
 Place the downloaded rosbags at:
 
@@ -241,10 +241,11 @@ If you use this code, please cite the Calousel paper. The final BibTeX entry
 will be updated after the official proceedings information is available.
 
 ```bibtex
-@inproceedings{calousel2026,
-  title = {Calousel: Extrinsic Calibration of Non-overlapping Multi-camera Systems from Pure Rotation},
-  booktitle = {IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
-  year = {2026}
+@INPROCEEDINGS { ghsong-2026-iros,
+    AUTHOR = { Gwanhyeong Song and Chaehyeon Song and Ayoung Kim },
+    TITLE = { Calousel: Extrinsic Calibration of Non-overlapping Multi-camera Systems from Pure Rotation },
+    BOOKTITLE = { IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) },
+    YEAR = { 2026 }
 }
 ```
 
