@@ -1,0 +1,18 @@
+camera:
+  img_dir: "examples/data/image/cam0"
+  n_d: 3
+  type: "circle"
+  n_x: 4
+  n_y: 3
+  assymmetric: false
+  detection_mode: ""
+  radius: 0.035
+  distance: 0.09
+
+options:
+  visualize: false
+  evaluation: true
+  save_pose: false
+  save_rpe: false
+  fix_intrinsic: false
+  results_path: "examples/output/intrinsic_results/cam0"

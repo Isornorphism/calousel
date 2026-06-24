@@ -1,0 +1,22 @@
+# Pair used for the camera-rig displacement evaluation example.
+platform: testbed
+reference_case: testbed_A
+target_case: testbed_B
+camera_pair: [cam0, cam1]
+rotation_units: deg
+translation_units: mm
+
+rotation_gt:
+  testbed_A:
+    roll: 0.0
+    pitch: 0.0
+    yaw: 180.0
+  testbed_B:
+    roll: 0.0
+    pitch: 0.0
+    yaw: 180.0
+
+translation_gt:
+  x: 0.0
+  y: 0.0
+  z: 10.0

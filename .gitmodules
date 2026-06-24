@@ -1,0 +1,3 @@
+[submodule "src/discocal"]
+	path = src/discocal
+	url = https://github.com/Isornorphism/discocal.git

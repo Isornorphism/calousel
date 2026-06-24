@@ -1,0 +1,31 @@
+camera:
+  img_dir: "examples/data/image/cam1/"
+  n_d: 3
+  mode: 0
+  n_x: 4
+  n_y: 3
+  width: 1440
+  height: 1080
+  radius: 0.035
+  distance: 0.09
+
+intrinsic_calibration:
+  fx: 1054.23
+  fy: 1054.58
+  cx: 731.023
+  cy: 582.718
+  skew: 0.73578
+  d1: -0.369869
+  d2: 0.215838
+  d3: -0.086158
+  d4: 0
+  sfx: 0.545445
+  sfy: 0.567414
+  scx: 0.867493
+  scy: 0.799319
+  sskew: 0.140656
+  sd1: 0.00157421
+  sd2: 0.00522009
+  sd3: 0.00512236
+  sd4: 0
+  reprojection_error: 0.0692842

@@ -1,0 +1,31 @@
+bag_path: "examples/data/rosbag/testbed_B.bag"
+keyframe_result_dir: "examples/output/keyframe_results/testbed_B"
+extrinsic_result_dir: "examples/output/extrinsic_results/testbed_B"
+
+camera:
+  cam0:
+    topic: "/cam_0/image_raw"
+    intrinsic_yaml: "examples/output/intrinsic_results/cam0/intrinsic_parameters.yaml"
+    frame_window_size: 5
+    angle_threshold: 3.0
+    rolling_shutter_compensation: false
+    fps: 30
+    debug: false
+  cam1:
+    topic: "/cam_1/image_raw"
+    intrinsic_yaml: "examples/output/intrinsic_results/cam1/intrinsic_parameters.yaml"
+    frame_window_size: 5
+    angle_threshold: 3.0
+    rolling_shutter_compensation: false
+    fps: 30
+    debug: false
+
+board:
+  n_x: 4
+  n_y: 3
+  radius: 0.035
+  distance: 0.09
+
+use_weight: true
+fix_reference_camera_z_to_zero: true
+optimize_reprojection_error: false

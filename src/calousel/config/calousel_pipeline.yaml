@@ -1,0 +1,33 @@
+# Unified config for keyframe extraction, optimize_extrinsics_cli, and calousel_pipeline.
+
+bag_path: "/HDD/calousel_rosbag/dataset_1/180_zl1_zr1_dr3_slow.bag/180_zl1_zr1_slow.bag_0.db3"
+keyframe_result_dir: "/home/gh/rotating_plate_calibration/calibration_result/angular_vel_test"
+extrinsic_result_dir: ""
+
+camera:
+  cam0:
+    topic: "/cam_0/image_raw"
+    intrinsic_yaml: "/HDD/calousel_rosbag/dataset_1/discocal_cam0/calibration_result.yaml"
+    frame_window_size: 5
+    angle_threshold: 3.0
+    rolling_shutter_compensation: false
+    fps: 60
+    debug: false
+  cam1:
+    topic: "/cam_1/image_raw"
+    intrinsic_yaml: "/HDD/calousel_rosbag/dataset_1/discocal_cam1/calibration_result.yaml"
+    frame_window_size: 5
+    angle_threshold: 3.0
+    rolling_shutter_compensation: false
+    fps: 60
+    debug: false
+
+board:
+  n_x: 4
+  n_y: 3
+  radius: 0.035
+  distance: 0.09
+
+use_weight: false
+fix_reference_camera_z_to_zero: false
+optimize_reprojection_error: false

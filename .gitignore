@@ -1,0 +1,43 @@
+# IDE / editor
+.vscode/
+.idea/
+
+# ROS 2 / colcon workspace
+build/
+install/
+log/
+.ros/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.eggs/
+
+# Native build artifacts
+*.o
+*.a
+*.so
+*.dll
+*.out
+*.exe
+*.log
+
+# Local user files
+local_artifacts/
+
+# Non-public or heavy datasets
+*.db3
+*.mcap
+*.bag
+*.tar.xz
+
+# Example data policy:
+# - keep intrinsic/keyframe outputs in git
+# - keep these directories via .gitkeep
+# - do not track raw rosbag files or generated extrinsic results
+examples/data/rosbag/*
+!examples/data/rosbag/.gitkeep
+examples/output/extrinsic_results/*
+!examples/output/extrinsic_results/.gitkeep
