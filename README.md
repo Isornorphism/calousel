@@ -74,8 +74,8 @@ flowchart LR
 Docker is the recommended way to run the release. The image builds the complete ROS 2 Humble workspace and installs Ceres 2.2.0 from source.
 
 ```bash
-git clone --recurse-submodules https://github.com/Isornorphism/rotating_plate_calibration.git
-cd rotating_plate_calibration
+git clone --recurse-submodules https://github.com/Isornorphism/calousel.git
+cd calousel
 
 docker build -t calousel:latest .
 docker run --rm -it \
