@@ -8,7 +8,7 @@ This repository contains the research code for our IROS 2026 paper:
 
 > **Calousel: Extrinsic Calibration of Non-overlapping Multi-camera Systems from Pure Rotation**
 
-[Paper](#) | [Video](https://www.youtube.com/watch?v=mcNS33hJPzg) | [BibTeX](#citation)
+[Paper](https://arxiv.org/abs/2606.25646) | [Video](https://www.youtube.com/watch?v=mcNS33hJPzg) | [BibTeX](#citation)
 
 <p align="center">
   <img src="teaser/calousel_teaser.gif" alt="Calousel full-scale vehicle demonstration" width="900">
