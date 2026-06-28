@@ -8,7 +8,7 @@ This repository contains the research code for our IROS 2026 paper:
 
 > **Calousel: Extrinsic Calibration of Non-overlapping Multi-camera Systems from Pure Rotation**
 
-[Paper](https://arxiv.org/abs/2606.25646) | [Video](https://www.youtube.com/watch?v=mcNS33hJPzg) | [BibTeX](#citation)
+[Paper](https://arxiv.org/abs/2606.25646) | [Video](https://www.youtube.com/watch?v=SWMroi_K5gE) | [Project page](https://isornorphism.github.io/calousel) | [BibTeX](#citation)
 
 <p align="center">
   <img src="teaser/calousel_teaser.gif" alt="Calousel full-scale vehicle demonstration" width="900">
@@ -232,7 +232,7 @@ Important fields:
 | `board.*` | Calibration board geometry. |
 | `use_weight` | Uses the diagonal of the covariance-derived information matrix as residual weights. |
 | `fix_reference_camera_z_to_zero` | Fixes the reference camera z coordinate along the turntable-axis direction to remove axial ambiguity. |
-| `optimize_reprojection_error` | Uses the reprojection-error objective instead of the default 3D motion objective. |
+| `optimize_reprojection_error` | Uses the reprojection-error loss function instead of the default 3D loss function. |
 
 
 ## Citation
