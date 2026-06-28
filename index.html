@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="">
+  <meta name="keywords" content="Sparse view, transparent, depth reconstruction">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calousel: Extrinsic Calibration of Non-overlapping Multi-camera Systems from Pure Rotation</title>
+
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro">
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-YXDZHQRVSJ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-YXDZHQRVSJ');
+</script>
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h2 class="title is-3 publication-title">Calousel: Extrinsic Calibration of Non-overlapping<br>Multi-camera Systems from Pure Rotation</h2>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a> Gwanhyeong Song<sup>1</sup></a>,</span>
+            <span class="author-block">
+              <a href="https://chaehyeonsong.github.io/" target="_blank">Chaehyeon Song<sup>1</sup></a>,</span>
+            <span class="author-block">
+              <a href="https://ayoungk.github.io/" target="_blank">Ayoung Kim<sup>1</sup></a></span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup>Seoul National University</span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">IROS 2026</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2606.25646"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://github.com/Isornorphism/calousel"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>
+              <span class="link-block">
+                <a href="https://www.youtube.com/watch?v=mcNS33hJPzg"
+                class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-youtube"></i>
+                  </span>
+                  <span>Video</span>
+                  </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Extrinsic calibration of multi-camera systems with non-overlapping FOVs has been a challenging problem in the robotics literature.
+            Conventional target-based methods impose substantial target setup overhead, either deploying large calibration targets or requiring pre-measured multi-target poses.
+            Motion-based approaches instead suffer from drift error, scale ambiguity, and motion degeneracy.
+            Securing both accuracy and usability, we propose a novel calibration method that leverages pure rotational motion, requiring only a single static calibration board.
+            The key idea is to make all cameras sequentially observe the same target under a shared geometric reference, even without overlapping views.
+            To integrate these time-separated observations, we formulate the problem using a latent turntable frame and a 3D error on SE(3) within a global optimization framework.
+            We validate the proposed method on both a controlled camera rig and a full-scale vehicle platform with heterogeneous cameras, and analyze robustness under non-ideal turntable motion.
+            Extensive experiments show that our approach maintains competitive accuracy without specialized precision hardware, proving its strong suitability for realistic on-site deployments.
+            Our code is publicly available <a href="https://github.com/Isornorphism/calousel" target="_blank">here</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Method Overview</h2>
+        <div class="content has-text-justified">
+          <p>
+            TRAN-D is a three-stage framework for reconstructing transparent objects from sparse RGB views. 
+            First, the <em>segmentation module</em> isolates transparent object instances using Grounded SAM, trained with a category-specific prompting strategy. 
+            Next, 2D Gaussians are randomly initialized and optimized in the <em>object-aware 2D Gaussian Splatting module</em> using differentiable tile rasterization and a novel object-aware 3D loss. 
+            This step produces dense and artifact-free object reconstructions. 
+            Finally, the <em>scene update module</em> employs physics-based simulation to refine the reconstruction after object removal, handling chain-reaction movements without requiring re-scanning.
+          </p>
+        </div>
+        <div class="content has-text-centered">
+          <img src="./images/figure2.png" alt="Method figure."/>
+        </div>
+      </div>
+    </div>
+</section>
+
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Results</h2>
+        <!-- Subsection. -->
+
+        <h3 class="title is-4">Segmentation for Transparent objects</h3>
+        <div class="content has-text-justified">
+          <p>
+            The two rows above show the RGB image and segmentation results at t=0, while the two rows below show the situation at t=1. 
+            As the scene transitions from t=0 to t=1, some of the objects present in the scene are removed.
+            During this process, some remaining objects that were in contact with removed objects are relocated.
+            Our Grounded SAM not only accurately distinguishes each object in cluttered scenes containing transparent objects, but also reliably tracks the objects whose positions change after some items are removed.
+          </p>
+        </div>
+        <div class="content has-text-centered">
+            <img src="./images/seg_syn.png" alt="LEAP Comparison figure." width="100%"/>
+        </div>
+        <div class="content has-text-justified">
+          <p>
+            We fine-tuned Grounded SAM using synthetic data generated from the TransPose dataset. 
+            Despite being trained exclusively on synthetic images, the model generalizes well to real-world scenarios, accurately segmenting transparent objects across diverse scenes.
+            Similarly, our Grounded SAM still recognizes objects whose positions have changed as the same objects, such as the plastic bottle (blue mask) that remained but shifted after the beaker (pink mask) was removed in the second row scene.
+          </p>
+        </div>
+        <div class="content has-text-centered">
+            <img src="./images/more_seg_real.png" alt="LEAP Comparison figure." width="100%"/>
+        </div>
+
+
+      <!-- Subsection. -->
+        <h3 class="title is-4">Object Depth Reconstruction on Synthetic Sequences</h3>
+        <div class="content has-text-justified">
+          <p>
+            We evaluated TRAN-D’s robustness and versatility on scenes with diverse backgrounds and textures. 
+            The first row shows BEV images included in the sparse-view training images, while the second row displays a zoomed-in view of the first test pose where we perform depth reconstruction.
+            The last row presents the object depth reconstruction results from a spiral sequence of test poses. 
+            The segmentation cleanly separates the objects from the background, enabling object-focused reconstruction and avoiding the influence of floaters.
+          </p>
+        </div>
+
+      <!-- Flexbox container for 3 items in a row -->
+      <div style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap;">
+        <!-- Item 1 -->
+        <div style="text-align: center; width: 30%;">
+          <img src="./images/textureless1_0.png" alt="Result 1" style="width: 100%;"/>
+          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
+            <source src="./videos/textureless1_0.mp4" type="video/mp4">
+          </video>
+        </div>
+
+        <!-- Item 2 -->
+        <div style="text-align: center; width: 30%;">
+          <img src="./images/textureless2_0.png" alt="Result 2" style="width: 100%;"/>
+          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
+            <source src="./videos/textureless2_0.mp4" type="video/mp4">
+          </video>
+        </div>
+
+        <!-- Item 3 -->
+        <div style="text-align: center; width: 30%;">
+          <img src="./images/textureless3_0.png" alt="Result 3" style="width: 100%;"/>
+          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
+            <source src="./videos/textureless3_0.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+
+      <br>
+      <div class="content has-text-justified">
+        <p>
+          Below are the results at t=1, where the images inside the red boxes show the corresponding situation at t=0 for comparison. 
+          We removed the objects with the one-hot vector obtained via segmentation, predicted the motion of the remaining objects through physics simulation, and then updated the Gaussian representation with minimal iterations based on a single image capturing the changed scene. 
+          In the result video, you can see that the removed objects disappear correctly, while the remaining objects are also finely adjusted.
+        </p>
+      </div>
+
+      <!-- Flexbox container for 3 items in a row -->
+      <div style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap;">
+        <!-- Item 1 -->
+        <div style="text-align: center; width: 30%;">
+          <img src="./images/textureless1_1.png" alt="Result 1" style="width: 100%;"/>
+          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
+            <source src="./videos/textureless1_1.mp4" type="video/mp4">
+          </video>
+        </div>
+
+        <!-- Item 2 -->
+        <div style="text-align: center; width: 30%;">
+          <img src="./images/textureless2_1.png" alt="Result 2" style="width: 100%;"/>
+          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
+            <source src="./videos/textureless2_1.mp4" type="video/mp4">
+          </video>
+        </div>
+
+        <!-- Item 3 -->
+        <div style="text-align: center; width: 30%;">
+          <img src="./images/textureless3_1.png" alt="Result 3" style="width: 100%;"/>
+          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
+            <source src="./videos/textureless3_1.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+      
+      <br>
+      <div class="content has-text-justified">
+        <p>
+          Unlike the scenes above, the scenes below demonstrate results on backgrounds with textures. 
+          Even at t=1, depth reconstruction continues to perform reliably.
+        </p>
+      </div>
+
+      <!-- Flexbox container for 3 items in a row -->
+      <div style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap;">
+        <!-- Item 1 -->
+        <div style="text-align: center; width: 30%;">
+          <img src="./images/texture1_0.png" alt="Result 1" style="width: 100%;"/>
+          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
+            <source src="./videos/texture1_0.mp4" type="video/mp4">
+          </video>
+        </div>
+
+        <!-- Item 2 -->
+        <div style="text-align: center; width: 30%;">
+          <img src="./images/texture2_0.png" alt="Result 2" style="width: 100%;"/>
+          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
+            <source src="./videos/texture3_0.mp4" type="video/mp4">
+          </video>
+        </div>
+
+        <!-- Item 3 -->
+        <div style="text-align: center; width: 30%;">
+          <img src="./images/texture3_0.png" alt="Result 3" style="width: 100%;"/>
+          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
+            <source src="./videos/texture2_0.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap;">
+        <!-- Item 1 -->
+        <div style="text-align: center; width: 30%;">
+          <img src="./images/texture1_1.png" alt="Result 1" style="width: 100%;"/>
+          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
+            <source src="./videos/texture1_1.mp4" type="video/mp4">
+          </video>
+        </div>
+
+        <!-- Item 2 -->
+        <div style="text-align: center; width: 30%;">
+          <img src="./images/texture2_1.png" alt="Result 2" style="width: 100%;"/>
+          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
+            <source src="./videos/texture3_1.mp4" type="video/mp4">
+          </video>
+        </div>
+
+        <!-- Item 3 -->
+        <div style="text-align: center; width: 30%;">
+          <img src="./images/texture3_1.png" alt="Result 3" style="width: 100%;"/>
+          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
+            <source src="./videos/texture2_1.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+
+      <br>
+        <!-- Subsection. -->
+        <br>
+        <h3 class="title is-4">Results on Real-World Mixed Sequences</h3>
+        <div class="content has-text-justified">
+          <p>
+            These are the segmentation and depth reconstruction results for real-world scenes containing both transparent and opaque objects.
+          </p>
+        </div>
+        <div class="content has-text-centered">
+            <img src="./images/mix.png" alt="LEAP Comparison figure." width="100%"/>
+        </div>
+
+        <!-- Subsection.
+        <div class="content has-text-centered">
+            <img src="./research/DiffusionSfM/figures/vis_cameras.png" alt="LEAP Comparison figure." width="100%"/>
+        </div> -->
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title is-3">BibTeX</h2>
+<pre><code>@inproceedings{jeongyun2025TRAN-D,
+  title={2D Gaussian Splatting-based Sparse-view Transparent Object Depth Reconstruction via Physics Simulation for Scene Update}, 
+  author={Jeongyun Kim, Seunghoon Jeong, Giseop Kim, Myung-Hwan Jeon, Eunji Jun and Ayoung Kim},
+  booktitle={ICCV},
+  year={2025} 
+}</code></pre>
+  </div>
+</section>
+
+
+<section class="column" id="Acknowledgements">
+  <div class="container is-max-desktop content">
+    <h2 class="title is-3">Acknowledgements</h2>
+    <p>
+      This work was supported by the National Research Founda- tion of Korea (NRF) grant funded by the Korea government (MSIT)(No. RS-2024-00461409), and in part by Hyundai Motor Company and Kia. and the Institute of Information & communications Technology Planning & Evaluation (IITP) grant funded by the Korea government(MSIT) No.2022-0- 00480, Development of Training and Inference Methods for Goal-Oriented Artificial Intelligence Agents.
+    </p>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <a class="icon-link"
+         href="https://arxiv.org/abs/2507.11069">
+        <i class="fas fa-file-pdf"></i>
+      </a>
+      <a class="icon-link" href="https://github.com/jeongyun0609/TRAN-D class="external-link" disabled>
+        <i class="fab fa-github"></i>
+      </a>
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is built using this template (<a href="https://qitaozhao.github.io/DiffusionSfM">source code</a>).
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
