@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="description"
         content="">
-  <meta name="keywords" content="Sparse view, transparent, depth reconstruction">
+  <meta name="keywords" content="Calousel, extrinsic calibration, non-overlapping cameras, multi-camera systems, turntable calibration">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Calousel: Extrinsic Calibration of Non-overlapping Multi-camera Systems from Pure Rotation</title>
 
@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
-  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="stylesheet" href="./static/css/index.css?v=20260629-14">
   <link rel="icon" href="./static/images/favicon.svg">
 
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
@@ -25,6 +25,18 @@
   <script src="./static/js/bulma-carousel.min.js"></script>
   <script src="./static/js/bulma-slider.min.js"></script>
   <script src="./static/js/index.js"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </head>
 
 <!-- Google tag (gtag.js) -->
@@ -81,7 +93,7 @@
                   </a>
               </span>
               <span class="link-block">
-                <a href="https://www.youtube.com/watch?v=mcNS33hJPzg"
+                <a href="https://www.youtube.com/watch?v=SWMroi_K5gE"
                 class="external-link button is-normal is-rounded is-dark">
                   <span class="icon">
                       <i class="fab fa-youtube"></i>
@@ -97,7 +109,22 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section teaser">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-four-fifths">
+        <div class="content has-text-centered teaser-figure">
+          <img src="./images/calousel_teaser.gif" alt="Calousel teaser."/>
+          <p class="is-size-6 has-text-grey">
+            Calousel calibrates non-overlapping multi-camera systems by rotating the platform on a turntable, allowing all cameras to sequentially observe a single static calibration board.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section abstract-section">
   <div class="container is-max-desktop">
     <!-- Abstract. -->
     <div class="columns is-centered has-text-centered">
@@ -105,15 +132,11 @@
         <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
           <p>
-            Extrinsic calibration of multi-camera systems with non-overlapping FOVs has been a challenging problem in the robotics literature.
-            Conventional target-based methods impose substantial target setup overhead, either deploying large calibration targets or requiring pre-measured multi-target poses.
-            Motion-based approaches instead suffer from drift error, scale ambiguity, and motion degeneracy.
-            Securing both accuracy and usability, we propose a novel calibration method that leverages pure rotational motion, requiring only a single static calibration board.
-            The key idea is to make all cameras sequentially observe the same target under a shared geometric reference, even without overlapping views.
-            To integrate these time-separated observations, we formulate the problem using a latent turntable frame and a 3D error on SE(3) within a global optimization framework.
-            We validate the proposed method on both a controlled camera rig and a full-scale vehicle platform with heterogeneous cameras, and analyze robustness under non-ideal turntable motion.
-            Extensive experiments show that our approach maintains competitive accuracy without specialized precision hardware, proving its strong suitability for realistic on-site deployments.
-            Our code is publicly available <a href="https://github.com/Isornorphism/calousel" target="_blank">here</a>.
+            We present Calousel, a practical extrinsic calibration framework for non-overlapping multi-camera systems.
+            Calousel uses pure rotational motion from a single-axis turntable and requires only a single static calibration board.
+            The key idea is to let all cameras sequentially observe the same target under a shared geometric reference, even without overlapping FOV.
+            We integrate these time-separated observations using a latent turntable frame and a 3D error on SE(3) within a global optimization framework.
+            We validate Calousel on both a controlled camera rig and a full-scale vehicle platform with heterogeneous cameras, demonstrating stable performance under realistic sensing conditions and turntable imperfections.
           </p>
         </div>
       </div>
@@ -121,239 +144,600 @@
   </div>
 </section>
 
+<section class="section glance-section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">At a Glance</h2>
+      </div>
+    </div>
+    <div class="glance-panel">
+      <div class="columns is-multiline is-centered glance-grid">
+        <div class="column is-half">
+          <div class="glance-card">
+            <h3 class="title is-5">No Overlapping FOV Required</h3>
+            <p>Calousel does not rely on direct inter-camera correspondences.</p>
+          </div>
+        </div>
+        <div class="column is-half">
+          <div class="glance-card">
+            <h3 class="title is-5">Single Static Calibration Board</h3>
+            <p>All cameras sequentially observe the same calibration board.</p>
+          </div>
+        </div>
+        <div class="column is-half">
+          <div class="glance-card">
+            <h3 class="title is-5">Pure Rotation</h3>
+            <p>A single-axis turntable induces pure rotational motion in a compact setup.</p>
+          </div>
+        </div>
+        <div class="column is-half">
+          <div class="glance-card">
+            <h3 class="title is-5">Global SE(3) Optimization</h3>
+            <p>A latent turntable frame integrates time-separated observations.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-<section class="section">
+<section class="section why-section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Why Calousel?</h2>
+    <div class="columns is-centered why-grid">
+      <div class="column is-half">
+        <div class="why-card">
+          <h3 class="title is-5">Target-based Methods</h3>
+          <div class="why-image-row">
+            <figure>
+              <img src="./images/target_based_large_target.svg" alt="Large calibration target setup."/>
+              <figcaption>Large target</figcaption>
+            </figure>
+            <figure>
+              <img src="./images/target_based_multi_target.svg" alt="Multi-target calibration setup."/>
+              <figcaption>Multi-target</figcaption>
+            </figure>
+          </div>
+          <ul>
+            <li>Large target or multiple target setup</li>
+            <li>High setup overhead</li>
+            <li>Pre-measured target poses</li>
+          </ul>
+        </div>
+      </div>
+      <div class="column is-half">
+        <div class="why-card">
+          <h3 class="title is-5">Motion-based Methods</h3>
+          <div class="why-image-row">
+            <figure>
+              <img src="./images/motion_based_drift.svg" alt="Drift error in motion-based calibration."/>
+              <figcaption>Drift error</figcaption>
+            </figure>
+            <figure>
+              <img src="./images/motion_based_motion_degeneracy.svg" alt="Motion degeneracy in motion-based calibration."/>
+              <figcaption>Motion degeneracy</figcaption>
+            </figure>
+          </div>
+          <ul>
+            <li>Drift accumulation</li>
+            <li>Scale ambiguity</li>
+            <li>Motion degeneracy</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="why-card why-card-calousel">
+      <div class="columns is-vcentered">
+        <div class="column is-three-fifths">
+          <img src="./images/why_calousel.svg" alt="Calousel turntable calibration setup."/>
+        </div>
+        <div class="column">
+          <h3 class="title is-5">Our Method: Calousel</h3>
+          <ul>
+            <li>Single static calibration board</li>
+            <li>Single-axis turntable</li>
+            <li>Sequential observations</li>
+            <li>Global SE(3) integration</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section method-section">
   <div class="container is-max-desktop">
     <div class="columns is-centered">
       <div class="column is-full-width">
         <h2 class="title is-3">Method Overview</h2>
-        <div class="content has-text-justified">
+
+        <div class="method-block">
+          <h3 class="title is-4">System Formulation</h3>
           <p>
-            TRAN-D is a three-stage framework for reconstructing transparent objects from sparse RGB views. 
-            First, the <em>segmentation module</em> isolates transparent object instances using Grounded SAM, trained with a category-specific prompting strategy. 
-            Next, 2D Gaussians are randomly initialized and optimized in the <em>object-aware 2D Gaussian Splatting module</em> using differentiable tile rasterization and a novel object-aware 3D loss. 
-            This step produces dense and artifact-free object reconstructions. 
-            Finally, the <em>scene update module</em> employs physics-based simulation to refine the reconstruction after object removal, handling chain-reaction movements without requiring re-scanning.
+            Calousel models the rotating platform through a latent turntable frame. Although cameras observe the calibration board at different time instants, their observations are connected by the same pure rotational motion.
+          </p>
+          <div class="content has-text-centered method-figure">
+            <img src="./images/system_formulation.svg" alt="Calousel system formulation."/>
+          </div>
+          <div class="method-equation">
+            \[
+            \boldsymbol{\hat{T}}_{\mathcal{C}_i(t_k)}^{\mathcal{W}}
+            =
+            \boldsymbol{T}_{\mathcal{A}(0)}^{\mathcal{W}}
+            \operatorname{rot}(\hat{z},\;\Omega t_k)
+            \boldsymbol{T}_{\mathcal{C}_i}^{\mathcal{A}}
+            \]
+          </div>
+          <p class="equation-caption">
+            The latent turntable frame separates the time-varying turntable rotation from the time-invariant camera mounting geometry.
           </p>
         </div>
-        <div class="content has-text-centered">
-          <img src="./images/figure2.png" alt="Method figure."/>
+
+        <div class="method-block">
+          <h3 class="title is-4">Framework</h3>
+          <div class="framework-grid">
+            <div class="framework-card">
+              <span class="step-label">Step 1</span>
+              <h4 class="title is-5">Keyframe Selection</h4>
+              <p>
+                Each camera observes the calibration board at different time intervals. We estimate camera-to-board poses and select reliable keyframes with associated covariance.
+              </p>
+            </div>
+            <div class="framework-card">
+              <span class="step-label">Step 2</span>
+              <h4 class="title is-5">Turntable-Kinematics-Based Initialization</h4>
+              <p>
+                Using the pure-rotation motion model, we initialize the angular velocity, turntable origin, and camera mounting poses from geometric constraints.
+              </p>
+            </div>
+            <div class="framework-card">
+              <span class="step-label">Step 3</span>
+              <h4 class="title is-5">Global Optimization on SE(3)</h4>
+              <p>
+                We jointly refine all parameters using a latent turntable frame and a 3D pose error on SE(3).
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+  </div>
 </section>
 
-
-
-<section class="section">
+<section class="section experiments-section">
   <div class="container is-max-desktop">
-    <div class="columns is-centered">
-      <div class="column is-full-width">
-        <h2 class="title is-3">Results</h2>
-        <!-- Subsection. -->
+    <h2 class="title is-3">Experiments</h2>
+    <div class="content has-text-justified">
+      <p>
+        We evaluate Calousel on two platforms: a controlled robotic camera rig for quantitative analysis and a full-scale vehicle platform for assessing real-world scalability.
+      </p>
+    </div>
 
-        <h3 class="title is-4">Segmentation for Transparent objects</h3>
-        <div class="content has-text-justified">
-          <p>
-            The two rows above show the RGB image and segmentation results at t=0, while the two rows below show the situation at t=1. 
-            As the scene transitions from t=0 to t=1, some of the objects present in the scene are removed.
-            During this process, some remaining objects that were in contact with removed objects are relocated.
-            Our Grounded SAM not only accurately distinguishes each object in cluttered scenes containing transparent objects, but also reliably tracks the objects whose positions change after some items are removed.
-          </p>
-        </div>
-        <div class="content has-text-centered">
-            <img src="./images/seg_syn.png" alt="LEAP Comparison figure." width="100%"/>
-        </div>
-        <div class="content has-text-justified">
-          <p>
-            We fine-tuned Grounded SAM using synthetic data generated from the TransPose dataset. 
-            Despite being trained exclusively on synthetic images, the model generalizes well to real-world scenarios, accurately segmenting transparent objects across diverse scenes.
-            Similarly, our Grounded SAM still recognizes objects whose positions have changed as the same objects, such as the plastic bottle (blue mask) that remained but shifted after the beaker (pink mask) was removed in the second row scene.
-          </p>
-        </div>
-        <div class="content has-text-centered">
-            <img src="./images/more_seg_real.png" alt="LEAP Comparison figure." width="100%"/>
-        </div>
-
-
-      <!-- Subsection. -->
-        <h3 class="title is-4">Object Depth Reconstruction on Synthetic Sequences</h3>
-        <div class="content has-text-justified">
-          <p>
-            We evaluated TRAN-D’s robustness and versatility on scenes with diverse backgrounds and textures. 
-            The first row shows BEV images included in the sparse-view training images, while the second row displays a zoomed-in view of the first test pose where we perform depth reconstruction.
-            The last row presents the object depth reconstruction results from a spiral sequence of test poses. 
-            The segmentation cleanly separates the objects from the background, enabling object-focused reconstruction and avoiding the influence of floaters.
-          </p>
-        </div>
-
-      <!-- Flexbox container for 3 items in a row -->
-      <div style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap;">
-        <!-- Item 1 -->
-        <div style="text-align: center; width: 30%;">
-          <img src="./images/textureless1_0.png" alt="Result 1" style="width: 100%;"/>
-          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
-            <source src="./videos/textureless1_0.mp4" type="video/mp4">
-          </video>
-        </div>
-
-        <!-- Item 2 -->
-        <div style="text-align: center; width: 30%;">
-          <img src="./images/textureless2_0.png" alt="Result 2" style="width: 100%;"/>
-          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
-            <source src="./videos/textureless2_0.mp4" type="video/mp4">
-          </video>
-        </div>
-
-        <!-- Item 3 -->
-        <div style="text-align: center; width: 30%;">
-          <img src="./images/textureless3_0.png" alt="Result 3" style="width: 100%;"/>
-          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
-            <source src="./videos/textureless3_0.mp4" type="video/mp4">
-          </video>
-        </div>
-      </div>
-
-      <br>
+    <div class="experiment-block">
+      <h3 class="title is-4">Robotic Camera Rig</h3>
       <div class="content has-text-justified">
         <p>
-          Below are the results at t=1, where the images inside the red boxes show the corresponding situation at t=0 for comparison. 
-          We removed the objects with the one-hot vector obtained via segmentation, predicted the motion of the remaining objects through physics simulation, and then updated the Gaussian representation with minimal iterations based on a single image capturing the changed scene. 
-          In the result video, you can see that the removed objects disappear correctly, while the remaining objects are also finely adjusted.
+          The robotic camera rig provides a controlled benchtop setup for quantitative evaluation. It consists of two FLIR Blackfly S cameras mounted on a reconfigurable rig, enabling angular and translational sweeps under non-overlapping FOV configurations. A stepper-motor turntable rotates the rig in front of a single static calibration board.
         </p>
       </div>
-
-      <!-- Flexbox container for 3 items in a row -->
-      <div style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap;">
-        <!-- Item 1 -->
-        <div style="text-align: center; width: 30%;">
-          <img src="./images/textureless1_1.png" alt="Result 1" style="width: 100%;"/>
-          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
-            <source src="./videos/textureless1_1.mp4" type="video/mp4">
-          </video>
-        </div>
-
-        <!-- Item 2 -->
-        <div style="text-align: center; width: 30%;">
-          <img src="./images/textureless2_1.png" alt="Result 2" style="width: 100%;"/>
-          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
-            <source src="./videos/textureless2_1.mp4" type="video/mp4">
-          </video>
-        </div>
-
-        <!-- Item 3 -->
-        <div style="text-align: center; width: 30%;">
-          <img src="./images/textureless3_1.png" alt="Result 3" style="width: 100%;"/>
-          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
-            <source src="./videos/textureless3_1.mp4" type="video/mp4">
-          </video>
-        </div>
+      <div class="experiment-figure-grid camera-rig-figures">
+        <figure>
+          <div class="experiment-image-stage">
+            <img src="./images/camera_rig_setup.png" alt="Robotic camera rig experimental setup."/>
+          </div>
+          <figcaption>Benchtop camera rig setup</figcaption>
+        </figure>
+        <figure class="white-artwork">
+          <div class="experiment-image-stage">
+            <img src="./images/camera_rig_config.svg" alt="Robotic camera rig mounting configurations."/>
+          </div>
+          <figcaption>Camera mounting configurations</figcaption>
+        </figure>
       </div>
-      
-      <br>
+    </div>
+
+    <div class="experiment-block">
+      <h3 class="title is-4">Full-scale Vehicle</h3>
       <div class="content has-text-justified">
         <p>
-          Unlike the scenes above, the scenes below demonstrate results on backgrounds with textures. 
-          Even at t=1, depth reconstruction continues to perform reliably.
+          We use the full-scale vehicle platform to evaluate Calousel at vehicle scale. The vehicle is equipped with heterogeneous cameras, including FLIR cameras and a RealSense D435i rolling-shutter camera, mounted on a roof rack with non-overlapping views. The platform is rotated on an automotive turntable to validate Calousel under vehicle-scale geometry.
         </p>
       </div>
-
-      <!-- Flexbox container for 3 items in a row -->
-      <div style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap;">
-        <!-- Item 1 -->
-        <div style="text-align: center; width: 30%;">
-          <img src="./images/texture1_0.png" alt="Result 1" style="width: 100%;"/>
-          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
-            <source src="./videos/texture1_0.mp4" type="video/mp4">
-          </video>
-        </div>
-
-        <!-- Item 2 -->
-        <div style="text-align: center; width: 30%;">
-          <img src="./images/texture2_0.png" alt="Result 2" style="width: 100%;"/>
-          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
-            <source src="./videos/texture3_0.mp4" type="video/mp4">
-          </video>
-        </div>
-
-        <!-- Item 3 -->
-        <div style="text-align: center; width: 30%;">
-          <img src="./images/texture3_0.png" alt="Result 3" style="width: 100%;"/>
-          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
-            <source src="./videos/texture2_0.mp4" type="video/mp4">
-          </video>
-        </div>
+      <div class="experiment-figure-grid vehicle-figures">
+        <figure>
+          <div class="experiment-image-stage">
+            <img src="./images/full_scale_vehicle_setup.png" alt="Full-scale vehicle experimental setup."/>
+          </div>
+          <figcaption>Full-scale vehicle setup</figcaption>
+        </figure>
+        <figure>
+          <div class="experiment-image-stage">
+            <img src="./images/full_scale_vehicle_config.png" alt="Full-scale vehicle camera configuration variants."/>
+          </div>
+          <figcaption>Roof-rack camera mounts</figcaption>
+        </figure>
       </div>
+    </div>
 
-      <div style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap;">
-        <!-- Item 1 -->
-        <div style="text-align: center; width: 30%;">
-          <img src="./images/texture1_1.png" alt="Result 1" style="width: 100%;"/>
-          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
-            <source src="./videos/texture1_1.mp4" type="video/mp4">
-          </video>
-        </div>
-
-        <!-- Item 2 -->
-        <div style="text-align: center; width: 30%;">
-          <img src="./images/texture2_1.png" alt="Result 2" style="width: 100%;"/>
-          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
-            <source src="./videos/texture3_1.mp4" type="video/mp4">
-          </video>
-        </div>
-
-        <!-- Item 3 -->
-        <div style="text-align: center; width: 30%;">
-          <img src="./images/texture3_1.png" alt="Result 3" style="width: 100%;"/>
-          <video style="width: 100%; margin-top: 0.5rem;" controls muted loop>
-            <source src="./videos/texture2_1.mp4" type="video/mp4">
-          </video>
-        </div>
+    <div class="experiment-block">
+      <h3 class="title is-4">Platform Summary</h3>
+      <div class="table-container experiment-table">
+        <table class="table is-fullwidth">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Robotic camera rig</th>
+              <th>Full-scale vehicle</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td># Cameras</td>
+              <td>2</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Camera types</td>
+              <td>2x FLIR Blackfly S</td>
+              <td>2x FLIR Blackfly S<br>1x RealSense D435i [RS]</td>
+            </tr>
+            <tr>
+              <td>Resolution</td>
+              <td>1440 x 1080 (FLIR)</td>
+              <td>1440 x 1080 (FLIR)<br>1080 x 720 (D435i)</td>
+            </tr>
+            <tr>
+              <td>FPS</td>
+              <td>60</td>
+              <td>30</td>
+            </tr>
+            <tr>
+              <td>Turntable type</td>
+              <td>Stepper-motor turntable</td>
+              <td>Automotive turntable</td>
+            </tr>
+            <tr>
+              <td>Board config.</td>
+              <td>4 x 3<br><em>r</em> = 0.035 m, <em>d</em> = 0.09 m</td>
+              <td>5 x 3<br><em>r</em> = 0.1 m, <em>d</em> = 0.3 m</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="table-note">[RS] indicates a rolling-shutter sensor.</p>
       </div>
+    </div>
+  </div>
+</section>
 
-      <br>
-        <!-- Subsection. -->
-        <br>
-        <h3 class="title is-4">Results on Real-World Mixed Sequences</h3>
-        <div class="content has-text-justified">
-          <p>
-            These are the segmentation and depth reconstruction results for real-world scenes containing both transparent and opaque objects.
-          </p>
-        </div>
-        <div class="content has-text-centered">
-            <img src="./images/mix.png" alt="LEAP Comparison figure." width="100%"/>
-        </div>
+<section class="section results-section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Results</h2>
+    <div class="metric-grid">
+      <div class="metric-card">
+        <h3>Camera Rig</h3>
+        <p>RRE &lt; 2.0&deg;</p>
+        <p>RTE &lt; 2.0 mm</p>
+      </div>
+      <div class="metric-card">
+        <h3>Full-scale Vehicle</h3>
+        <p>RRE 0.9&deg;-1.5&deg;</p>
+        <p>RTE 5.6-11.7 mm</p>
+      </div>
+      <div class="metric-card">
+        <h3>Overlapping-FOV Check</h3>
+        <p>&le; 0.1&deg; rotation diff.</p>
+        <p>&le; 0.3 mm translation diff.</p>
+      </div>
+    </div>
 
-        <!-- Subsection.
-        <div class="content has-text-centered">
-            <img src="./research/DiffusionSfM/figures/vis_cameras.png" alt="LEAP Comparison figure." width="100%"/>
-        </div> -->
+    <div class="result-block">
+      <h3 class="title is-4">Robotic Camera Rig Evaluation</h3>
+      <div class="content has-text-justified">
+        <p>
+          On the controlled camera rig, Calousel maintains stable accuracy across non-overlapping camera configurations, with an average RRE of 1.7° and an average RTE of 1.8 mm.
+        </p>
+      </div>
+      <div class="table-container result-table">
+        <table class="table is-fullwidth">
+          <thead>
+            <tr>
+              <th colspan="7">Rotation components</th>
+              <th colspan="7">Translation components</th>
+            </tr>
+            <tr>
+              <th colspan="3">GT</th>
+              <th colspan="3">Measured</th>
+              <th rowspan="2">RRE</th>
+              <th colspan="3">Displacement GT</th>
+              <th colspan="3">Measured Displacement</th>
+              <th rowspan="2">RTE</th>
+            </tr>
+            <tr>
+              <th>Roll</th>
+              <th>Pitch</th>
+              <th>Yaw</th>
+              <th>Roll</th>
+              <th>Pitch</th>
+              <th>Yaw</th>
+              <th>Rad.</th>
+              <th>Tan.</th>
+              <th><em>z</em></th>
+              <th>Rad.</th>
+              <th>Tan.</th>
+              <th><em>z</em></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>0</td><td>0</td><td>60</td>
+              <td>0.7&plusmn;0.4</td><td>0.3&plusmn;0.2</td><td>60.3&plusmn;0.2</td><td>0.9&plusmn;0.2</td>
+              <td>-20</td><td>0</td><td>0</td>
+              <td>-21.0&plusmn;1.2</td><td>-0.2&plusmn;1.1</td><td>-0.4&plusmn;0.5</td><td>2.0&plusmn;0.2</td>
+            </tr>
+            <tr>
+              <td>0</td><td>0</td><td>120</td>
+              <td>0.9&plusmn;0.2</td><td>1.2&plusmn;0.2</td><td>120.0&plusmn;0.2</td><td>1.5&plusmn;0.3</td>
+              <td>0</td><td>50</td><td>0</td>
+              <td>0.3&plusmn;1.3</td><td>50.5&plusmn;0.3</td><td>0.2&plusmn;0.6</td><td>1.5&plusmn;0.6</td>
+            </tr>
+            <tr>
+              <td>0</td><td>0</td><td>180</td>
+              <td>-0.1&plusmn;0.2</td><td>1.8&plusmn;0.5</td><td>179.8&plusmn;0.5</td><td>1.9&plusmn;0.5</td>
+              <td>0</td><td>0</td><td>10</td>
+              <td>0.8&plusmn;1.5</td><td>-0.2&plusmn;1.2</td><td>9.9&plusmn;0.5</td><td>1.8&plusmn;1.1</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="table-note">Units are mm for translation and deg for rotation.</p>
+      </div>
+    </div>
+
+    <div class="result-block">
+      <h3 class="title is-4">Full-scale Vehicle Evaluation</h3>
+      <div class="content has-text-justified">
+        <p>
+          On the full-scale vehicle, Calousel preserves rotation accuracy at vehicle scale. Absolute translation errors increase due to the larger platform geometry, motivating the normalized comparison below.
+        </p>
+      </div>
+      <div class="table-container result-table">
+        <table class="table is-fullwidth">
+          <thead>
+            <tr>
+              <th rowspan="3">Cam.</th>
+              <th colspan="7">Rotation components</th>
+              <th colspan="7">Translation components</th>
+            </tr>
+            <tr>
+              <th colspan="3">GT</th>
+              <th colspan="3">Measured</th>
+              <th rowspan="2">RRE</th>
+              <th colspan="3">Displacement GT</th>
+              <th colspan="3">Measured Displacement</th>
+              <th rowspan="2">RTE</th>
+            </tr>
+            <tr>
+              <th>Roll</th><th>Pitch</th><th>Yaw</th>
+              <th>Roll</th><th>Pitch</th><th>Yaw</th>
+              <th>Rad.</th><th>Tan.</th><th><em>z</em></th>
+              <th>Rad.</th><th>Tan.</th><th><em>z</em></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td rowspan="2"><em>C</em><sub>2</sub></td>
+              <td>0</td><td>0</td><td>60</td>
+              <td>0.5</td><td>0.7</td><td>59.8</td><td>0.9</td>
+              <td>0</td><td>0</td><td>0</td>
+              <td>1.1</td><td>0.6</td><td>4.2</td><td>8.3</td>
+            </tr>
+            <tr>
+              <td>0</td><td>0</td><td>90</td>
+              <td>0.3</td><td>0.1</td><td>90.6</td><td>1.0</td>
+              <td>0</td><td>150</td><td>0</td>
+              <td>4.0</td><td>151.5</td><td>3.6</td><td>5.6</td>
+            </tr>
+            <tr class="group-start">
+              <td rowspan="3"><em>C</em><sub>3</sub></td>
+              <td>0</td><td>0</td><td>180</td>
+              <td>-0.2</td><td>-0.5</td><td>179.1</td><td>1.5</td>
+              <td>0</td><td>0</td><td>0</td>
+              <td>1.8</td><td>-0.8</td><td>2.1</td><td>7.7</td>
+            </tr>
+            <tr>
+              <td>-</td><td>-</td><td>-</td>
+              <td>-</td><td>-</td><td>-</td><td>-</td>
+              <td>0</td><td>150</td><td>0</td>
+              <td>0.9</td><td>145.9</td><td>5.2</td><td>7.8</td>
+            </tr>
+            <tr>
+              <td>-</td><td>-</td><td>-</td>
+              <td>-</td><td>-</td><td>-</td><td>-</td>
+              <td>0</td><td>0</td><td>-100</td>
+              <td>0.6</td><td>0.0</td><td>-107.8</td><td>11.7</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="table-note">Units are mm for translation and deg for rotation. <em>C</em><sub>2</sub> and <em>C</em><sub>3</sub> are reported relative to <em>C</em><sub>1</sub>.</p>
+      </div>
+    </div>
+
+    <div class="result-block">
+      <h3 class="title is-4">Normalized Translation Error Across Scales</h3>
+      <div class="content has-text-justified">
+        <p>
+          To account for platform scale, we normalize each translation error by the corresponding inter-camera distance. Under this normalized metric, the camera rig and full-scale vehicle exhibit comparable component-wise error ratios.
+        </p>
+      </div>
+      <figure class="result-figure">
+        <img src="./images/normalized_translation.svg" alt="Comparison of normalized translation errors between camera rig and full-scale vehicle."/>
+        <figcaption>Comparison of camera rig and full-scale vehicle translation errors using normalized metrics.</figcaption>
+      </figure>
+    </div>
+
+    <div class="result-block">
+      <h3 class="title is-4">Comparison to Target-based Method in Overlapping FOV</h3>
+      <div class="content has-text-justified">
+        <p>
+          In overlapping-FOV stereo configurations, Calousel produces estimates that closely match a conventional target-based calibration method, while retaining the ability to handle non-overlapping configurations.
+        </p>
+      </div>
+      <div class="table-container result-table compact-result-table">
+        <table class="table is-fullwidth">
+          <thead>
+            <tr>
+              <th>Setting</th>
+              <th></th>
+              <th>Target-based</th>
+              <th>Ours</th>
+              <th>Diff. norm</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td rowspan="2">Stereo-A</td>
+              <td>Rot.</td>
+              <td>(-0.24, -0.33, 0.61)</td>
+              <td>(-0.24, -0.33, 0.57)</td>
+              <td>0.06</td>
+            </tr>
+            <tr>
+              <td>Trans.</td>
+              <td>(98.76, 1.18, -0.82)</td>
+              <td>(98.96, 1.27, -0.88)</td>
+              <td>0.23</td>
+            </tr>
+            <tr class="group-start">
+              <td rowspan="2">Stereo-B</td>
+              <td>Rot.</td>
+              <td>(0.11, 0.63, -0.01)</td>
+              <td>(0.11, 0.63, -0.04)</td>
+              <td>0.03</td>
+            </tr>
+            <tr>
+              <td>Trans.</td>
+              <td>(98.30, -10.21, -1.46)</td>
+              <td>(98.35, -10.21, -1.50)</td>
+              <td>0.07</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="table-note">Units are mm for translation and deg for rotation.</p>
+      </div>
+    </div>
+
+    <div class="result-block">
+      <h3 class="title is-4">Reference Accuracies in Prior Work</h3>
+      <div class="content has-text-justified">
+        <p>
+          Because prior methods use different sensor setups and calibration environments, these numbers should be interpreted as contextual references rather than a direct benchmark. Calousel provides competitive accuracy while avoiding large target setups, pre-measured target poses, or additional cameras.
+        </p>
+      </div>
+      <div class="table-container result-table prior-table">
+        <table class="table is-fullwidth">
+          <thead>
+            <tr>
+              <th colspan="2">Methods</th>
+              <th>Rotational error</th>
+              <th>Translational error</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td rowspan="2">Target-based</td>
+              <td>Yin et al. (Remote Sens. 2018)</td>
+              <td>0.06</td>
+              <td>0.08</td>
+            </tr>
+            <tr>
+              <td>Liu et al. (Opt. Laser. Eng. 2011)</td>
+              <td>N/A</td>
+              <td>0.01-0.08</td>
+            </tr>
+            <tr class="group-start">
+              <td rowspan="2">Motion-based</td>
+              <td>Xu et al. (RA-L 2022)</td>
+              <td>2.5</td>
+              <td>14</td>
+            </tr>
+            <tr>
+              <td>Dai et al. (Sensors 2024)</td>
+              <td>3.7</td>
+              <td>70.6</td>
+            </tr>
+            <tr class="group-start">
+              <td>Additional-Camera</td>
+              <td>Robinson et al. (CAIP 2017)</td>
+              <td>0.02-0.06</td>
+              <td>2-5</td>
+            </tr>
+            <tr class="ours-row group-start">
+              <td colspan="2">Ours</td>
+              <td>1.7</td>
+              <td>1.8</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="table-note">Units are deg for rotation and mm for translation. N/A indicates not reported.</p>
       </div>
     </div>
   </div>
 </section>
 
 
+<section class="section" id="Video">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Video</h2>
+    <div class="publication-video">
+      <iframe src="https://www.youtube.com/embed/SWMroi_K5gE"
+              title="Calousel video"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen></iframe>
+    </div>
+  </div>
+</section>
+
+
+<section class="section" id="Code">
+  <div class="container is-max-desktop content">
+    <h2 class="title is-3">Code</h2>
+    <a class="code-bookmark" href="https://github.com/Isornorphism/calousel" target="_blank">
+      <div class="bookmark-body">
+        <h3>Isornorphism/calousel</h3>
+        <p>Research code for Calousel, including keyframe extraction, turntable-based extrinsic optimization, example data, and evaluation scripts.</p>
+        <span>https://github.com/Isornorphism/calousel</span>
+      </div>
+      <div class="bookmark-thumb">
+        <i class="fab fa-github"></i>
+      </div>
+    </a>
+  </div>
+</section>
 
 
 <section class="section" id="BibTeX">
   <div class="container is-max-desktop content">
     <h2 class="title is-3">BibTeX</h2>
-<pre><code>@inproceedings{jeongyun2025TRAN-D,
-  title={2D Gaussian Splatting-based Sparse-view Transparent Object Depth Reconstruction via Physics Simulation for Scene Update}, 
-  author={Jeongyun Kim, Seunghoon Jeong, Giseop Kim, Myung-Hwan Jeon, Eunji Jun and Ayoung Kim},
-  booktitle={ICCV},
-  year={2025} 
+<pre><code>@INPROCEEDINGS { ghsong-2026-iros,
+    AUTHOR = { Gwanhyeong Song and Chaehyeon Song and Ayoung Kim },
+    TITLE = { Calousel: Extrinsic Calibration of Non-overlapping Multi-camera Systems from Pure Rotation },
+    BOOKTITLE = { IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) },
+    YEAR = { 2026 }
 }</code></pre>
   </div>
 </section>
 
 
-<section class="column" id="Acknowledgements">
+<section class="section" id="Acknowledgements">
   <div class="container is-max-desktop content">
     <h2 class="title is-3">Acknowledgements</h2>
     <p>
-      This work was supported by the National Research Founda- tion of Korea (NRF) grant funded by the Korea government (MSIT)(No. RS-2024-00461409), and in part by Hyundai Motor Company and Kia. and the Institute of Information & communications Technology Planning & Evaluation (IITP) grant funded by the Korea government(MSIT) No.2022-0- 00480, Development of Training and Inference Methods for Goal-Oriented Artificial Intelligence Agents.
+      This work is supported by the Korea Agency for Infrastructure Technology Advancement (KAIA) grant funded by the Ministry of Land, Infrastructure and Transport (Grant RS-2023-00250727) through the Korea Floating Infrastructure Research Center at Seoul National University.
+    </p>
+    <p>
+      This project builds on <a href="https://github.com/chaehyeonsong/discocal" target="_blank">DiscoCal</a> for accurate circular-pattern intrinsic calibration and board pose extraction. Please cite DiscoCal as appropriate if you use the intrinsic calibration component.
     </p>
   </div>
 </section>
@@ -363,10 +747,10 @@
   <div class="container">
     <div class="content has-text-centered">
       <a class="icon-link"
-         href="https://arxiv.org/abs/2507.11069">
+         href="https://arxiv.org/abs/2606.25646">
         <i class="fas fa-file-pdf"></i>
       </a>
-      <a class="icon-link" href="https://github.com/jeongyun0609/TRAN-D class="external-link" disabled>
+      <a class="icon-link" href="https://github.com/Isornorphism/calousel">
         <i class="fab fa-github"></i>
       </a>
     </div>
@@ -374,7 +758,7 @@
       <div class="column is-8">
         <div class="content">
           <p>
-            This website is built using this template (<a href="https://qitaozhao.github.io/DiffusionSfM">source code</a>).
+            This website is built using an academic project page template.
           </p>
         </div>
       </div>

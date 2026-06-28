@@ -1,0 +1,1334 @@
+Calousel: Extrinsic Calibration of Non-overlapping
+Multi-camera Systems from Pure Rotation
+Gwanhyeong Song1 , Chaehyeon Song1 , and Ayoung Kim1∗
+Abstract— Extrinsic calibration of multi-camera systems with
+non-overlapping FOVs has been a challenging problem in the
+robotics literature. Conventional target-based methods impose
+substantial target setup overhead, either deploying large calibration targets or requiring pre-measured multi-target poses.
+Motion-based approaches instead suffer from drift error, scale
+ambiguity, and motion degeneracy. Securing both accuracy and
+usability, we propose a novel calibration method that leverages
+pure rotational motion, requiring only a single static calibration
+board. The key idea is to make all cameras sequentially observe
+the same target under a shared geometric reference, even
+without overlapping views. To integrate these time-separated
+observations, we formulate the problem using a latent turntable
+frame and a 3D error on SE(3) within a global optimization
+framework. We validate the proposed method on both a
+controlled camera rig and a full-scale vehicle platform with
+heterogeneous cameras, and analyze robustness under nonideal turntable motion. Extensive experiments show that our
+approach maintains competitive accuracy without specialized
+precision hardware, proving its strong suitability for realistic
+on-site deployments. Our code is publicly available here.
+
+I. I NTRODUCTION
+Multi-camera systems have become key sensing modalities
+for modern robotic platforms, providing wide field coverage
+and reliable multi-view perception [1, 2]. The performance
+of such platforms depends on accurate extrinsic calibration
+between cameras [3]. In practical deployments, cameras are
+often oriented in different directions to maximize coverage
+with a limited number of cameras, resulting in little to no
+field of view (FOV) overlap. This makes extrinsic calibration
+challenging, since conventional feature-matching approaches
+rely on direct correspondences observed in shared views [4].
+To address non-overlapping FOV scenarios, existing approaches can be categorized into target-based and motionbased paradigms. Target-based methods use either a large
+calibration target [5–7] that is partially visible in each camera’s view or multiple targets [8–10] placed within individual
+camera views. However, the large high-precision target is
+often costly and cumbersome, while multi-target systems
+demand the precise 6D configuration data of every target
+for calibration. Such setup complexity reduces practical
+usability, especially for repeated calibration and on-site deployment. On the other hand, motion-based methods estimate
+extrinsic parameters from camera trajectories obtained via
+† This work is supported by the Korea Agency for Infrastructure Technology Advancement (KAIA) grant funded by the Ministry of Land,
+Infrastructure and Transport (Grant RS-2023-00250727) through the Korea
+Floating Infrastructure Research Center at Seoul National University.
+1 G. H. Song, C. H. Song, and A. Kim are with the Dept. of Mechanical Engineering, SNU, Seoul, S. Korea [skh8464, chaehyeon,
+
+ayoungk]@snu.ac.kr
+
+Target-based Methods
+
+[Large target]
+
+[Multi-target]
+
+Motion-based Methods
+
+● Drift error
+
+● Setup overhead
+
+● Motion degeneracy
+
+● Pre-measured target poses
+
+● Scale ambiguity
+
+Our Method: Calousel
+Calibration board
+
+Multi-camera system
+
+● Pure rotation
+● Single, static calibration board
+Turntable
+
+● Sequential integration
+
+Fig. 1: Conceptual comparison of calibration methodologies for
+non-overlapping camera systems. (Left) Target-based methods
+require large or multi-target setups, incurring setup overhead and
+often requiring pre-measured target poses (Right) Motion-based
+methods estimate extrinsics from trajectories but suffer from drift,
+motion degeneracy, and scale ambiguity. (Bottom) Our proposed
+method, Calousel, leverages a turntable to induce space-efficient,
+single-axis pure rotation. This enables a multi-camera system (e.g.,
+vehicle) to sequentially observe a single, static calibration board.
+By globally optimizing these views, Calousel provides a practical
+balance between usability and accuracy.
+
+visual odometry [11–13]. Yet, these approaches are prone to
+drift accumulation, sensitive to motion degeneracy [14, 15],
+and suffer from scale ambiguity without metric constraints.
+To balance these trade-offs, hybrid methods combine target
+observations with constrained motions [16–18]. Although
+these approaches mitigate some limitations above, they do
+not explicitly address non-overlapping FOVs and may not
+extend to extreme front–rear configurations (∼ 180◦ ). Moreover, they often require precisely controlled motion during
+data acquisition, which increases setup complexity and limits
+scalability to large multi-camera systems.
+We present a calibration method explicitly designed for
+non-overlapping FOV multi-camera systems. Our key idea is
+to leverage in-place pure rotation generated by a single-axis
+turntable, enabling space-efficient calibration even for largescale setups. This motion is well suited to non-overlapping
+FOV calibration because it allows all cameras to sequentially
+observe the same static calibration target, thereby establishing a shared metric reference. Unlike prior hybrid pipelines
+that may require specialized precision motion hardware,
+our method uses a standard single-axis turntable, which is
+common in industrial workflows [19] and easy to replicate
+at a laboratory scale. In our setup, a rigidly mounted multi-
+
+camera system rotates in front of a single static calibration board (Fig. 1). We then integrate these time-separated
+observations using a latent turntable frame and a global
+optimization with a 3D error on SE(3).
+We validate the proposed method on a camera rig across
+various configurations and experimental conditions. We further assess scalability and real-world applicability on a fullscale vehicle platform equipped with heterogeneous cameras,
+by integrating rolling-shutter compensation module. We also
+analyze robustness to non-ideal turntable motions (e.g., wobble and vibration), which is commonly observed in costeffective hardware used in practical deployments.
+The main contributions are summarized as follows:
+• We propose a space-efficient extrinsic calibration framework for non-overlapping multi-camera systems using
+a single-axis turntable, designed to balance practical
+deployability and calibration accuracy without requiring
+precision equipment or complex target setups.
+• We develop a turntable-aware formulation with a latent
+turntable frame and a 3D error on SE(3) to integrate
+sequential target observations under pure rotation, while
+supporting rolling-shutter compensation.
+• We validate the proposed method on platforms ranging
+from a controlled camera rig to a full-scale vehicle,
+and demonstrate stable calibration performance under
+realistic sensing and actuation artifacts.
+II. RELATED WORK
+The extrinsic parameter calibration of multi-camera systems is a critical prerequisite for accurate downstream tasks.
+While overlapping FOVs allow for direct feature matching,
+non-overlapping configurations leave no shared visual overlap for establishing correspondences.
+Creating Virtual Overlap: One line of work attempts to
+virtually convert non-overlapping systems into overlapping
+ones. Early approaches attempted to create virtual overlaps
+using optical components like mirrors [20], but they are
+highly susceptible to the precision of the optical equipment.
+Other works [21] introduce intermediate cameras to bridge
+two disjoint views, yet repeated composition of transformation matrices may accumulate numerical errors, and frequently fails in extreme angular-separation configurations.
+Target-based Methods: Without altering the nonoverlapping conditions, target–based methods exploit
+known calibration patterns to precisely estimate camera
+poses from image observations. Some approaches utilize
+a single massive target that can be partially observed
+by multiple cameras [5–7]. Because these observations
+are anchored to a unified global geometry, the extrinsic
+parameters can be estimated with high accuracy. However,
+the applicability of a single target diminishes when the
+camera system features a wide baseline or large angular
+separation. To overcome this, room-scale calibration
+environments have been proposed, enclosing the entire
+platform to ensure target visibility across a wide range of
+viewing directions [22, 23]. While effective, these dedicated
+facilities require substantial infrastructure and careful setup.
+
+Meanwhile, other works [8–10] locate distinct targets
+within each camera’s FOV. Yet, this strategy demands the
+precise 6D pre-measurement of all targets, which becomes
+increasingly cumbersome as the sensor count grows.
+Motion-based Methods: Alternatively, motion-based methods eliminate external apparatus by estimating extrinsic parameters from visual simultaneous localization and mapping
+(SLAM) [11, 12] or structure-from-motion (SFM) [13], and
+formulating the task as a hand-eye calibration problem.
+Despite the appeal of such flexible setups, their accuracy
+is fundamentally bounded by the quality of visual odometry
+and can degrade under drift. Moreover, hand-eye calibration
+is highly sensitive to motion degeneracy (e.g., pure rotation or translation [14, 15]). Monocular setups also suffer
+from inherent scale ambiguity, necessitating supplementary
+metric cues such as IMU measurements [24], range sensors
+or references to known objects, which increase hardware
+dependency and environmental sensitivity.
+Hybrid Strategies: Consequently, hybrid strategies combining target observations with controlled motion have emerged
+as a solution. For example, prior works combined a calibration target with controlled motions generated by pure
+translation stages [16], two-axis turntables [17], and robot
+arms [18]. Despite their promise, many hybrid methods are
+not explicitly designed for strictly non-overlapping FOV
+systems. Moreover, precision hardware and alignment procedures can increase setup complexity and cost, thereby limiting scalability to large-scale systems and extreme angularseparation configurations.
+To bridge these gaps, we leverage a single-axis turntable to
+rotate the multi-camera system in place. This allows cameras
+with non-overlapping FOVs, even in front-rear configurations, to sequentially observe a single static calibration board,
+providing a space-efficient alternative to complex multi-axis
+actuators. Crucially, this setup inherently resolves two fundamental limitations: the board provides metric constraints that
+remove scale ambiguity, and camera-to-board absolute poses
+avoid degeneracy under pure rotation. By globally optimizing
+these sequential observations with a 3D error on SE(3), we
+achieve robust, competitive accuracy.
+III. M ETHOD
+This section presents a pipeline for accurate extrinsic
+−1
+calibration of a multi-camera system {Ci }N
+i=0 , specifically
+targeting configurations with non-overlapping FOV. The
+method is structured into three stages. First, we define
+the problem setup and coordinate frames, and describe
+keyframe selection (including rolling-shutter compensation
+when applicable). Second, we derive robust kinematicsbased initialization for the turntable and camera mounting
+parameters. Lastly, we refine all parameters jointly via a
+global optimization that minimizes a 3D error function.
+A. System Setup and Coordinate Frames Definition
+Our methodology is implemented using a calibration board
+fixed in the environment and a rotary turntable that applies
+pure rotational motion to the multi-cameras system. As a
+
+prerequisite, we assume the intrinsic parameters of each
+camera have been pre-calibrated using the method from [25].
+For clarity, we represent an SE(3) transformation T by
+its rotation matrix and translation vector as T = (R, t).
+Throughout the paper, scalar t denotes time, and boldface
+denotes vectors.
+Our algorithm uses the following physical assumptions:
+• The multi-camera system, rigidly mounted on the
+turntable, is an ideal rigid body that undergoes no
+structural deformation during motion.
+• The turntable executes pure rotation with a constant
+angular velocity Ω.
+• During data acquisition, the turntable completes at least
+one full rotation, and every camera is guaranteed to
+observe the calibration board at a certain interval.
+The second assumption defines an idealized motion model.
+Since real turntables can exhibit non-ideal effects such as
+axis wobble and vibration, we later analyze such deviations
+and their impact on the estimated extrinsics in §IV-E.
+As shown in Fig. 2, we define three coordinate frames. The
+world frame W is attached to the calibration board, with
+its xy-plane coincides with the board plane. Each camera
+frame is denoted Ci (t), whose z-axis aligns with the principal
+axis (i.e., viewing direction). We further introduce a latent
+turntable frame A(t), which is fixed to the turntable and
+rotates about its z-axis over time. We term A(t) latent
+because it is not directly observed from image measurements;
+instead, it is introduced to separate the turntable-driven timevarying rotation from the time-invariant camera mounting geometry in the calibration. The efficacy of this representation
+is further examined in §IV-D.
+The turntable frame A(t) admits gauge ambiguities: the
+in-plane orientation of its x and y axes is ambiguous over
+time, and its origin is also ambiguous along the rotation
+axis. To fix these degree of freedom (DOF), we impose two
+constraints. First, at the time origin t = 0, we choose A(0)
+
+Fig. 2: Coordinate frame setting of the proposed calibration
+system. The world frame W is fixed to the calibration board. The
+turntable frame A(t) rotates with the multi-camera system at a
+constant angular velocity Ω. Ci denotes the frame of the i-th camera,
+with C0 being the reference camera. The coordinate axes are coded
+as red for the x-axis, green for the y-axis, and blue for the z-axis.
+
+such that its x-axis is as closely aligned with the x-axis of
+W as possible. Second, we set the origin of A(t) so that the
+reference camera C0 lies on the z = 0 plane in A(t). The
+definitions of the time origin and the reference camera are
+provided in §III-B.
+With this construction, two transformations are nominally
+time-invariant: the turntable pose at the time origin, T W
+A(0) ,
+and the mounting pose of each camera relative to the
+A
+turntable, T A
+Ci . Hence, we omit the time index in T Ci (i.e.,
+A(t)
+A
+T Ci (t) ≡ T Ci ).
+Based on these definitions, the kinematic model for the
+predicted pose of camera Ci at timestamp tk is modeled as
+W
+
+A
+T̂ Ci (tk ) = T W
+A(0) rot(ẑ, Ωtk )T Ci ,
+
+(1)
+
+where rot(ẑ, θ) denotes a pure rotational transformation by
+angle θ about the z-axis in SE(3). The unknown parameters
+consist of the angular velocity Ω and the turntable pose at
+A
+the time origin, T W
+A(0) , and the extrinsic poses, T Ci for
+i = 0, . . . , (N − 1). These parameters collectively have
+(6N − 1) DOF when imposing the constraint tz = 0
+for the reference camera, C0 . Consequently, the complete
+A
+parameter set optimized in this study is {Ω, T W
+A(0) , T Ci (i =
+0, . . . , N − 1)}, comprising (6N + 6) parameters.
+B. Keyframe Selection and Rolling-Shutter Compensation
+Keyframe Selection: To reduce the computational load, our
+algorithm selects keyframes instead of using all images. For
+each camera Ci , we process a sliding window of consecutive
+images in which the calibration board is visible within the
+FOV. Within each window, we perform target-based camera
+pose estimation using [25], and we append the frame with
+the lowest reprojection error to a dedicated keyframe queue
+for that camera. Each selected keyframe stores the estimated camera-to-board pose and its associated covariance,
+Σξ , defined in se(3). To avoid near-duplicate viewpoints
+and improve numerical conditioning, we adapt the sampling
+such that the rotation between any two adjacent selected
+keyframes exceeds a threshold θth . This yields a per-camera
+keyframe sequence (tk , T W
+Ci (tk ) , Σξ(tk ) )k , where the index k
+is local to each camera.
+Now, we define the time origin t = 0 to the timestamp of
+the globally best keyframe (the keyframe achieving the minimum reprojection error across all cameras and windows),
+and we designate the camera that captured it as the reference
+camera, which we re-index as C0 without loss of generality.
+Rolling-Shutter Compensation: Rolling-shutter cameras
+can introduce noticeable bias in target-based pose estimation under rotational motion [26], because image rows are
+exposed at different times within a single frame. To mitigate this effect, we incorporate a lightweight rolling-shutter
+compensation module as a first-order approximation.
+Within each sliding window, we estimate the average pixel
+velocity of the detected circle centroids, (u̇, v̇), by comparing
+the centroid locations between the first and last successful
+detections in the window and dividing by the time difference.
+Let H be the image height in pixels and treadout the total
+sensor readout time per frame. Assuing a uniform row-wise
+
+readout, the exposure time offset for a measurement at image
+row r is approximated as tline = treadout (r/H). We then
+compensate the predicted projection (ue , ve ) by (ue , ve ) ←
+(ue + tline u̇, ve + tline v̇) before computing residuals.
+In practice, we re-run the target-based pose estimation
+for rolling-shutter keyframes by augmenting the optimization
+with treadout and integrating the above correction into the
+residual computation. A qualitative evaluation of the resulting improvement is provided in §IV-C.
+
+⊤ W
+û⊤ tW
+A(0) = û tC0 (tk ) .
+
+C. Turntable-Kinematics-Based Initialization
+Initialization of Rotational Components: Under the
+constant-velocity rotation assumption, relative rotations observed from all cameras should share a common rotation
+axis. We initialize the turntable motion per revolution (cycle)
+by using relative rotations with respect to the first keyframe
+of that cycle.
+Specifically, let t0 denote the timestamp of the first
+keyframe in a cycle and tk that of a subsequent keyframe.
+The relative rotation between the two poses is mapped to the
+Lie algebra to extract the rotation angle and unit axis as
+
+
+W
+−1
+ûk ∆θk = Log RW
+(R
+)
+,
+(2)
+Ci (tk )
+Ci (t0 )
+Here, ∆θk is the rotation angle and ûk is the unit rotation axis. An angular velocity estimate is obtained as
+Ω = ∆θk /(tk − t0 ). These estimates are computed for all
+keyframes within the cycle, the angular velocity estimates
+are averaged to obtain the initial angular velocity, Ω, and the
+axis vectors are averaged and normalized to obtain the initial
+rotation axis, û.
+Initialization of the Origin of Turntable Frame: A reliable
+initialization of the turntable-frame origin is crucial, as it
+affects not only the initial estimate of the turntable pose
+TW
+A(0) , but also the initial estimates of the camera mounting
+poses T A
+Ci . In practice, each camera acquires camera-toboard poses only over the angular range where the calibration
+board lies within its FOV. Hence, camera trajectories are only
+partially observed over a full revolution, and the observable
+range can be particularly limited along the world z-direction.
+Under these constraints, we propose a method to robustly
+estimate the turntable origin, tW
+A(0) , by solving a linear leastsquares problem that aggregates geometric constraints from
+the available trajectories.
+The origin estimation combines two complementary conditions with different scopes of applicability. First, we impose an equidistance condition for every camera trajectory. Since each camera is rigidly mounted on the rotating
+platform, the distance between the turntable origin and the
+camera center must remain constant over time. For two time
+stamps t0 , tk of the same camera Ci , this condition can be
+linearized as shown in (4). For Ki keyframes of camera Ci ,
+this yields (Ki − 1) linear constraints.
+W
+W
+W
+tW
+Ci (t0 ) − tA(0) = (tCi (tk ) − tA(0) ,
+⊤
+
+2
+2
+W
+W
+tW
+2 tW
+− tW
+.
+Ci (tk ) − tCi (t0 )
+A(0) = tCi (tk )
+Ci (t0 )
+
+Second, we impose a coplanarity condition only for reference camera C0 . Recall that the turntable frame A is defined
+such that the reference camera lies on its z = 0 plane.
+Equivalently, the relative displacement from the reference
+W
+camera center to the turntable origin, tW
+A(0) − tC0 (tk ) , must
+be orthogonal to the turntable axis û, yielding the coplanarity
+(axis-orthogonality) constraint:
+
+
+W
+(5)
+−
+t
+û⊤ tW
+C0 (tk ) = 0,
+A(0)
+
+(3)
+(4)
+
+(6)
+
+We stack all linear equations from (4) (all cameras) and (6)
+(reference camera only) into a single
+P system Ax = b, where
+A ∈ R(K−N +K0 )×3 with K = i Ki . The initial estimate
+tW
+A(0) is obtained by solving this linear least squares.
+W
+tW
+A(0) = argmin b − AtA(0)
+
+2
+
+.
+
+(7)
+
+tW
+A(0)
+
+Initialization of the Camera Mounting Pose: Given the
+initial turntable parameters {Ω, T W
+A(0) } and the observed
+camera-to-board poses T W
+,
+we
+compute candidates for
+Ci (tk )
+A
+each camera mounting pose T Ci by rearanging the kinematic
+model in (1). Since T A
+Ci is modeled as a time-invariant
+variable shared across all keyframes of camera Ci , we obtain
+a robust initial estimate by averaging these candidate in se(3)
+Lie algebra and mapping back to SE(3) via Exp( · ).
+D. Global Optimization using 3D Error Function
+To estimate the accurate extrinsic parameters of the camera
+system, T A
+Ci , we simultaneously optimize all system parameters. In target-based calibration, the conventional cost
+function is the reprojection error defined in the 2D image
+space. However, our optimization process directly minimizes
+(8), the pose error between the observed camera pose, T W
+Ci ,
+W
+
+and the predicted camera pose T̂ Ci , calculated from the
+kinematic model in (1).
+A
+{Ω, T W
+A(0) , T Ci (i = 0, . . . , N − 1)}
+ 2
+ W
+X
+Log (T̂ Ci (tk ) )−1 T W
+= argmin
+.
+Ci (tk )
+Ω,T W
+,T A
+Ci i,k
+A(0)
+
+Σ
+
+(8)
+
+Here, ∥ · ∥Σ denotes the Mahalanobis norm with respect to
+measurement covariance Σξ defined in se(3). This strategy
+mitigates the tendency of reprojection-based optimization
+to excessively reduce the error of individual cameras. A
+detailed accuracy comparison with reprojection error–based
+optimization can be found in §IV-D.
+We empirically found that the strong kinematic constraints
+of the turntable system induce high correlations between the
+components of the se(3) vector, leading to an optimization
+instability. To mitigate this, we simplify the weighting by
+using only the diagonal elements of the covariance matrix.
+Minimizing the loss function in (8) with this weighting
+scheme yields the final extrinsic parameters T A
+Ci (i =
+0, . . . , N −1), which are defined with respect to the turntable
+body-fixed frame A(t).
+
+IV. EXPERIMENT
+This section evaluates the proposed extrinsic calibration
+method on two platforms: a robotic camera rig and a fullscale vehicle. Calibration accuracy is first quantified on
+the robotic camera rig under diverse non-overlapping FOV
+configurations, which serves as a compact sensor setup
+targeting small robotic platforms. The same evaluation is
+then extended to the full-scale vehicle to assess real-scale
+performance. We additionally validate the rationale behind
+our key design choices, including the latent frame and the 3D
+error function in (8) and examine the effect of rolling-shutter
+compensation. Motion imperfections, including small deviations of the rotation axis and fluctuations of the turntableframe origin, are also quantified and related to the calibration
+accuracy. Finally, as an additional reference, we compare
+our estimates with a conventional target-based calibration
+method on an overlapping FOV setting.
+A. Experimental Platforms and Evaluation Metric
+Experimental Platforms: We collected data on two platforms, a benchtop camera rig and a full-scale vehicle, to
+evaluate the proposed method under both systematic configuration changes and more realistic conditions. The camera
+rig uses a 3D printed reconfigurable rig that enables diverse
+camera configurations, while the full-scale vehicle platform
+is constructed with a larger and heterogeneous camera setup
+to assess applicability. A summary of the hardware setups
+and specifications for both platforms is provided in Fig. 3
+and Table. I. Across all experiments, the turntable was rotated
+for at least two full cycles, and the same minimum rotation
+◦
+threshold for keyframe selection, θth = 3 , was used.
+For clarity, the experiments in §IV-B and §IV-F were
+conducted on the camera rig, whereas §IV-C reports results
+obtained on the full-scale vehicle. In §IV-D, the rollingshutter compensation results are obtained on the full-scale
+vehicle, while the remaining results of design-choice validation are evaluated on the camera rig. Finally, §IV-E
+characterizes the non-ideal turntable motion observed on
+both platforms.
+Evaluation Metric: For rotation components, we use nominal relative rotations between cameras as ground truth.
+Specifically, we set the relative rotation of each camera
+Ci with respect to C1 (for i ≥ 2), and quantify the error
+using Euler angle components and Relative Rotation Error
+(RRE). However, establishing an absolute ground truth for
+translation is challenging, as the internal camera centers
+are not directly observable even when mounted on the
+designed system. Therefore, following the available groundtruth strategy in [27], we apply a known relative displacement
+between two configuration trials and evaluate how closely the
+calibrated displacement recovers this value. The translation
+error is reported as a component-wise vector in (radial,
+tangential, z) and by its norm (i.e., Relative Translation Error
+(RTE)). We report the camera rig results in §IV-B and the
+full-scale vehicle results in §IV-C under the same protocol.
+
+(a)
+
+(b)
+
+Calibration board
+
+C1: fix
+
+60˚
+
+Tan.
+Rad.
+z
+C2
+Spacer 180˚
+
+120˚
+
+Turntable
+
+Camera rig
+(c)
+
+(d)
+
+C1: front
+
+Calibration board
+C2: left side
+
+Vehicle
+C3: rear
+
+Turntable
+
+Fig. 3: Experiment setup. (a) Benchtop camera rig including the
+turntable, the 3D-printed reconfigurable rig, and the calibration
+board. (b) Schematic of the reconfigurable rig illustrating angular
+and translational configuration sweeps used for evaluation. (c) Fullscale vehicle platform on an automotive turntable alongside the
+calibration board. (d) Top-down view of the vehicle roof rack,
+detailing non-overlapping mounting positions of the three cameras.
+TABLE I: Summary of experimental platforms for the camera rig
+and full scale vehicle evaluations. Camera marked with [RS] uses
+a rolling-shutter sensor; without [RS] uses a global-shutter sensor.
+Item
+
+Robotic camera rig
+
+Full-scale vehicle
+
+# Cameras
+
+2
+
+3
+
+Camera types
+
+2× FLIR Blackfly S
+
+Resolution
+
+1440×1080 (FLIR)
+
+2× FLIR Blackfly S
+1× RealSense D435i [RS]
+1440×1080 (FLIR)
+1080×720 (D435i)
+30
+
+FPS
+
+60
+
+Turntable type
+
+Stepper-motor
+turntable
+
+Board config.
+
+4×3
+5×3
+r=0.035 m, d=0.09 m r=0.1 m, d=0.3 m
+
+Automotive turntable
+
+B. Robotic Camera Rig Evaluation
+Table. II and Table. III summarize the rotation and translation results on the camera rig under multiple configurations
+with non-overlapping FOVs. The proposed method maintains
+stable accuracy, with RRE below 2.0◦ and RTE below
+2.0 mm. In addition, the Euler components show consistent
+standard deviations (typically 0.2◦ to 0.5◦ ), indicating repeatable rotation estimation across different orientations. For
+translation, it exhibits relatively larger mean error and variance in the radial direction, reflecting the inherent geometric
+uncertainty of depth estimation from 2D image observations.
+Although direct comparison is difficult due to differences
+in sensor setups and calibration environments, our results
+suggest that the proposed method occupies a practical middle
+ground in the existing literature. For reference, existing
+target-based method [9] typically reports rotation errors
+around 0.06◦ and translation errors around 0.08 mm. In contrast, the motion-based method [11] shows rotation errors of
+approximately 2.5◦ and significantly larger translation errors
+around 14 mm. Compared to these prior reports, while our
+
+TABLE II: Comparison of estimated extrinsic rotations against
+ground truth on the camera rig. Results are analyzed by Euler angle
+components and RRE, formatted as ‘mean±SD’ (this notation is
+maintained in all subsequent tables). All units are in deg.
+Pitch
+
+Measured
+Yaw
+
+Roll
+
+Pitch
+
+Yaw
+
+RRE
+
+0
+
+0
+
+60
+
+0.7±0.4
+
+0.3±0.2
+
+60.3±0.2
+
+0.9±0.2
+
+0
+
+0
+
+120
+
+0.9±0.2
+
+1.2±0.2
+
+120.0±0.2
+
+1.5±0.3
+
+0
+
+0
+
+180
+
+-0.1±0.2
+
+1.8±0.5
+
+179.8±0.5
+
+1.9±0.5
+
+TABLE III: Comparison of estimated extrinsic translations against
+available ground truth, based on known relative displacements between two configurations, on the camera rig. Results are expressed
+in (radial, tangential, z) and RTE. All units are in mm.
+Displacement GT
+
+Measured Displacement
+
+Tan.
+
+z
+
+Rad.
+
+Tan.
+
+z
+
+-20
+
+0
+
+0
+
+-21.0±1.2
+
+-0.2±1.1
+
+-0.4±0.5
+
+2.0±0.2
+
+0
+
+50
+
+0
+
+0.3±1.3
+
+50.5±0.3
+
+0.2±0.6
+
+1.5±0.6
+
+0
+
+10
+
+0.8±1.5
+
+-0.2±1.2
+
+9.9±0.5
+
+C2
+C3
+
+Cam
+C2
+
+1.8±1.1
+
+approach does not reach the sub-millimeter precision of complex target-based systems1 , it compares favorably to motionbased methods. This improvement is particularly prominent
+in translation (i.e., < 2.0 mm vs. 14 mm), suggesting that
+our framework successfully mitigates the scale ambiguity and
+drift that typically degrade motion-based calibration.
+C. Full-scale Vehicle Evaluation
+Table. IV and Table. V compare the estimated extrinsic
+parameters of the side camera C2 and the rear camera C3
+with respect to the front camera C1 against the ground
+truth on the full-scale platform. In Table. IV, the rotation
+errors remain at a similar level to those observed on the
+camera rig (Table. II), indicating that the proposed method
+preserves rotation accuracy when scaling up to a vehiclesized platform. In contrast, Table. V shows that translation
+errors are noticeably larger than the camera rig results
+(Table. III), which is consistent with the larger platform scale.
+This behavior is expected from the lever-arm effect in error
+propagation [28, 29]. In calibration, translation accuracy
+is coupled to rotational uncertainty, and even comparable
+rotational uncertainty can induce larger translation errors as
+the distance between the two frames increases. To account
+for this scale dependence, Fig. 4 reports the component-wise
+translation error as a ratio, obtained by dividing the absolute
+translation error by the inter-camera distance. With this normalization, the camera rig and the full-scale vehicle exhibit
+comparable error levels across components, supporting the
+performance of consistence on scale. Overall, these results
+on a vehicle-scale platform using an automotive turntable
+support the practical applicability of the proposed method to
+realistic industrial calibration workflows.
+D. Validation of Key Method Components
+Rolling-shutter Compensation: Fig. 5 qualitatively shows
+the effect of the rolling-shutter compensation module described in §III-A. We compare the camera-center trajectories
+1 e.g., mutli-target setups that require target poses the 6D poses of all
+targets to be known a priori.
+
+GT
+
+Measured
+
+RRE
+
+Roll
+
+Pitch
+
+Yaw
+
+Roll
+
+Pitch
+
+Yaw
+
+0
+
+0
+
+60
+
+0.5
+
+0.7
+
+59.8
+
+0.9
+
+0
+
+0
+
+90
+
+0.3
+
+0.1
+
+90.6
+
+1.0
+
+0
+
+0
+
+180
+
+-0.2
+
+-0.5
+
+179.1
+
+1.5
+
+TABLE V: Comparison of estimated extrinsic translations against
+available ground truth on the full-scale vehicle. C2 and C3 denote
+the extrinsic parameters relative to C1 . Results are expressed in
+(radial, tangential, z) and RTE. All units are in mm.
+
+RTE
+
+Rad.
+
+0
+
+Cam
+
+C3
+
+Ratio of abs. error
+
+GT
+Roll
+
+TABLE IV: Comparison of estimated extrinsic rotations against
+ground truth on the full-scale vehicle. C2 and C3 denote the
+extrinsic parameters relative to C1 Results are summarized by Euler
+angle components and RRE. All units are in deg.
+
+Displacement GT
+
+Measured Displacement
+
+Tan.
+
+z
+
+Rad.
+
+0
+
+0
+
+0
+
+0
+
+150
+
+0
+
+0
+
+0
+
+0
+
+0
+
+150
+
+0
+
+0
+
+0
+
+-100
+
+Rad.
+
+RTE
+
+Tan.
+
+z
+
+1.1
+
+0.6
+
+4.2
+
+8.3
+
+4.0
+
+151.5
+
+3.6
+
+5.6
+
+1.8
+
+-0.8
+
+2.1
+
+7.7
+
+0.9
+
+145.9
+
+5.2
+
+7.8
+
+0.6
+
+0.0
+
+-107.8
+
+11.7
+
+Camera rig
+
+Full-scale vehicle
+
+Tangential
+
+z
+
+0.008
+0.006
+0.004
+0.002
+0.000
+Radial
+
+Fig. 4: Comparison of camera rig and full-scale vehicle translation errors using normalized metrics. The plot summarizes
+component-wise translation error ratios across the configuration
+sweep for each platform, where each translation error is normalized
+by the corresponding inter-camera distance. For the camera rig,
+the statistics are computed from the estimated pose of C2 with
+respect to C1 . For the full-scale vehicle, the statistics aggregate the
+estimated poses of both C2 and C3 with respect to C1 . Bar plots
+indicate Mean Absolute Error (MAE), error bars denote 1-sigma.
+
+computed from the camera-to-board poses T W
+Ci (i = 1, 2, 3)
+before and after optimization with rolling-shutter compensation. Because all cameras are rigidly mounted on the
+turntable-driven platform, their trajectories should ideally
+share a common rotation axis, and the corresponding trajectory planes should be parallel. Without compensation (a), the
+rolling-shutter camera (‘Cam 1’) exhibits a noticeably tilted
+trajectory plane. With compensation (b), the fitted planes
+across three cameras become nearly parallel, indicating improved consistency with the expected rotational motion. This
+supports the applicability of the proposed pipeline to practical multi-camera setups including rolling-shutter sensors.
+Latent Frame and 3D Loss: We also validate two key
+design choices of the proposed formulation on the camera
+rig. Because rotation components do not show differences
+across variants, we report only translation results for clarity.
+First, we consider a variant that removes the latent
+turntable frame (‘w/o latent coord.’), where the turntable
+motion is estimated directly by extracting a screw motion
+
+With RS compensation
+
+Cam 1
+Cam 2
+Cam 3
+
+Cam 1
+Cam 2
+Cam 3
+
+(a)
+
+(b)
+
+Axis deviation of zW
+A
+
+Deviation (mm)
+
+(b)
+
+Deviation (deg)
+
+(a) Without RS compensation
+
+0.4
+0.2
+0.0
+0
+
+20
+
+Origin deviation of tW
+A
+
+10
+
+40
+
+0
+0
+
+Camera rig
+
+Fig. 5: Effectiveness of rolling-shutter compensation during
+initialization. Colored dots indicate the estimated camera centers
+with respect to board (world) frame at keyframes. Circles show the
+3D trajectories of camera centers, and arrows denote the normal
+vectors of planes from circle fitting. Without compensation (a), the
+rolling-shutter camera (‘Cam 1’) exhibits a noticeably tilted normal
+vector. With compensation (b), the normal vectors of all camera
+trajectories are properly aligned.
+Ours
+
+w/o latent coord.
+
+using RPE
+
+Abs. error (mm)
+
+20
+15
+
+Stereo-A
+5
+
+Stereo-B
+Tangential
+
+Full-scale vehicle
+
+TABLE VI: Side-by-side comparison with a conventional targetbased method and ours in two stereo configurations with overlapping FOV. Rotation is reported as (Roll, Pitch, Yaw) and translation
+as (x, y, z). The last column reports the discrepancy between the
+two estimates as RRE for rotation rows and RTE for translation
+rows. Units are in deg for rotation and mm for translation.
+
+10
+
+Radial
+
+40
+
+Fig. 7: Turntable motion deviations observed on the both
+platforms. Deviations over one revolution of the reference camera
+are plotted versus turntable angle, shown only over angles where the
+calibration board is visible in their FOV. (a) Rotational deviations:
+deviation of the turntable axis, defined as the direction of the z-axis
+of the A(t) expressed in W. (b) Translational deviations: deviation
+of the turntable origin from tW
+A(0) .
+
+Setting
+
+0
+
+20
+
+Rotation angle of turntable (deg)
+
+Target-based
+
+Ours
+
+Diff.
+norm
+
+Rot.
+
+(-0.24, -0.33, 0.61)
+
+(-0.24, -0.33, 0.57)
+
+0.06
+
+Trans.
+
+(98.76, 1.18, -0.82)
+
+(98.96, 1.27, -0.88)
+
+0.23
+
+Rot.
+
+(0.11, 0.63, -0.01)
+
+(0.11, 0.63, -0.04)
+
+0.03
+
+Trans.
+
+(98.30, -10.21, -1.46)
+
+(98.35, -10.21, -1.50)
+
+0.07
+
+z
+
+Fig. 6: Comparison of the proposed method against two design
+variants on the camera rig. Bar plots report the MAE of the
+component-wise translation errors. We compare our full method
+(‘Ours’) with two variants: one without the latent turntable frame
+(‘w/o latent coord.’) and one that uses reprojection error as the cost
+function (‘using RPE’). Error bars denote 1-sigma.
+
+from the camera-to-board measurements rather than being
+represented via A(t). As shown in Fig. 6, this variant
+produces noticeably larger translation errors, especially in
+the tangential and z components. This indicates that the
+latent frame effectively constrains ambiguities that arise
+when estimating camera motion directly in the world frame.
+We further compare the proposed 3D error with a standard
+reprojection-error objective (‘using RPE’). The reprojectionerror variant shows larger translation errors and variance,
+with the largest degradation in the z component (Fig. 6). This
+can be attributed to the fact that reprojection error is defined
+in the 2D image frame and does not explicitly enforce 3D
+rigid-body trajectory consistency under the turntable motion
+model, whereas the proposed 3D error does.
+E. Robustness under Non-Ideal Turntable Motion
+The ideal turntable assumptions in §III-A are not perfectly
+met on real hardware due to wobble, vibration, and backlash2 . In this section, we quantify these non-ideal motions
+on both the camera rig and the full-scale vehicle platform,
+and discuss their implications for calibration performance.
+2 Here, wobble refers to periodic oscillation of the rotation axis, vibration
+to high-frequency fluctuations of the platform, and backlash to lost motion
+caused by mechanical clearance in the drive.
+
+In Fig. 7 (a), we plot the turntable-axis deviation, defined
+as the direction of the z-axis of the turntable frame A(t)
+expressed in W, as a function of the turntable rotation angle.
+While an ideal turntable would yield deviations close to zero,
+both platforms exhibit non-negligible axis wobble. In Fig. 7
+(b), we show the turntable-origin deviation, quantified from
+tW
+A(0) , which reveals millimeter-level fluctuations consistent
+with vibration and backlash.
+Importantly, despite these non-ideal motions, the proposed
+method maintains the calibration accuracy reported in §IV-B
+and §IV-C. That is, the observed axis and origin deviations
+do not translate into divergent or unstable extrinsic estimates;
+instead, they are largely absorbed by the global optimization
+that estimates T A
+C as a single time-invariant parameter over
+all keyframes. Overall, these results support that the proposed
+approach is practically robust to turntable imperfections
+commonly present in cost-effective hardware.
+F. Comparison to Target-based Method in Overlapping FOV
+As an additional reference, we compare the proposed method with a conventional target-based calibration
+method [30] on two stereo configurations with overlapping
+FOVs (Stereo-A and Stereo-B in Table. VI). We apply
+our method without modification (same formulation as the
+non-overlapping setting), whereas the conventional method
+exploits simultaneous board observations in the overlapping
+views. As shown in Table. VI, the two methods yield nearly
+matching estimates, differing by at most 0.1◦ in rotation
+and 0.3, mm in translation. Since our method is built on sequential board observations and a turntable kinematic model
+rather than direct inter-camera correspondences, it does not
+
+fundamentally depend on FOV overlap and is expected to
+maintain similar accuracy in non-overlapping settings.
+V. C ONCLUSION
+In this paper, we presented a pure-rotation-based extrinsic calibration method for multi-camera systems with nonoverlapping FOVs, designed for practical deployment. By
+rotating a rigidly mounted multi-camera system in front of a
+calibration board, the proposed framework provides a spaceefficient and low-burden calibration procedure that is well
+suited to industrial platforms where setup complexity and
+repeatability are critical.
+The method introduces a latent frame and a 3D loss on
+SE(3), enabling global optimization from sequential target
+observations without direct inter-camera correspondences.
+Experiments on a camera rig and a full-scale vehicle validated stable and repeatable calibration performance across
+diverse configurations, including rolling-shutter sensing and
+non-ideal turntable motion. Overall, the results support the
+proposed method as a practical calibration solution that balances accuracy and usability for real multi-camera systems.
+R EFERENCES
+[1] A. Singh, “Surround-view vision-based 3d detection for autonomous driving: A survey,” in Proc. IEEE Intl. Conf. on
+Comput. Vision, 2023, pp. 3243–3252.
+[2] C. Wu, J. Li, J. Cao, M. Li, S. Du, and Y. Li, “Omniocc:
+Cylindrical voxel-based semantic occupancy prediction for
+omnidirectional vision systems,” IEEE Access, 2025.
+[3] I. Leizea, I. Herrera, and P. Puerto, “Calibration procedure of
+a multi-camera system: Process uncertainty budget,” Sensors,
+vol. 23, no. 2, p. 589, 2023.
+[4] R. Xia, M. Hu, J. Zhao, S. Chen, Y. Chen, and S. Fu,
+“Global calibration of non-overlapping cameras: State of the
+art,” Optik, vol. 158, pp. 951–961, 2018.
+[5] B. Li, L. Heng, K. Koser, and M. Pollefeys, “A multiplecamera system calibration toolbox using a feature descriptorbased calibration pattern,” in Proc. IEEE/RSJ Intl. Conf. on
+Intell. Robots and Sys., 2013, pp. 1301–1307.
+[6] Z. Liu, G. Zhang, Z. Wei, and J. Sun, “Novel calibration
+method for non-overlapping multiple vision sensors based on
+1d target,” Opt. Laser. Eng., vol. 49, no. 4, pp. 570–577, 2011.
+[7] T. Strauß, J. Ziegler, and J. Beck, “Calibrating multiple cameras with non-overlapping views using coded checkerboard
+targets,” in Proc. IEEE Intell. Transport. Sys. Conf., 2014, pp.
+2623–2628.
+[8] Z. Liu, G. Zhang, Z. Wei, and J. Sun, “A global calibration
+method for multiple vision sensors based on multiple targets,”
+Meas. Sci. Technol., vol. 22, no. 12, p. 125102, 2011.
+[9] L. Yin, X. Wang, Y. Ni, K. Zhou, and J. Zhang, “Extrinsic parameters calibration method of cameras with non-overlapping
+fields of view in airborne remote sensing,” Remote Sensing,
+vol. 10, no. 8, p. 1298, 2018.
+[10] Z. Zhu, Y. Q. Zheng, W. Li, J. Zhang, Y. Zhao, and Z. W.
+Wu, “Global calibration method for non-overlapping cameras
+based on rigidly connected stereo targets,” Applied Optics,
+vol. 61, no. 24, pp. 6985–6991, 2022.
+[11] J. Xu, R. Li, L. Zhao, W. Yu, Z. Liu, B. Zhang, and Y. Li,
+“CamMap: Extrinsic calibration of non-overlapping cameras
+based on SLAM map alignment,” IEEE Robot. and Automat.
+Lett., vol. 7, no. 4, pp. 11 879–11 885, 2022.
+[12] G. Carrera, A. Angeli, and A. J. Davison, “SLAM-based
+automatic extrinsic calibration of a multi-camera rig,” in Proc.
+
+IEEE Intl. Conf. on Robot. and Automat., 2011, pp. 2652–
+2659.
+[13] C. Dai, T. Han, Y. Luo, M. Wang, G. Cai, J. Su, Z. Gong, and
+N. Liu, “NMC3D: Non-overlapping multi-camera calibration
+based on sparse 3D map,” Sensors, vol. 24, no. 16, p. 5228,
+2024.
+[14] B. Guan and J. Zhao, “Affine correspondences between multicamera systems for relative pose estimation,” IEEE Trans.
+Pattern Analysis and Machine Intell., 2025.
+[15] B. Clipp, J.-H. Kim, J.-M. Frahm, M. Pollefeys, and R. Hartley, “Robust 6DOF motion estimation for non-overlapping,
+multi-camera systems,” in Proc. IEEE Winter Conf. Appl.
+Comput. Vis., 2008, pp. 1–8.
+[16] M. Yang, X. Chen, and C. Yu, “Camera calibration using a
+planar target with pure translation,” Applied optics, vol. 58,
+no. 31, pp. 8362–8370, 2019.
+[17] S. Shi, K. Zhao, Z. You, C. Ouyang, Y. Cao, and Z. Wang,
+“Error analysis and calibration method of a multiple field-ofview navigation system,” Sensors, vol. 17, no. 3, p. 655, 2017.
+[18] A. Tabb and K. M. Ahmad Yousef, “Solving the robotworld hand-eye(s) calibration problem with iterative methods,”
+Mach. Vis. Appl., vol. 28, no. 5, pp. 569–590, 2017.
+[19] W. Jing, J. Polden, C. F. Goh, M. Rajaraman, W. Lin,
+and K. Shimada, “Sampling-based coverage motion planning
+for industrial inspection application with redundant robotic
+system,” in Proc. IEEE/RSJ Intl. Conf. on Intell. Robots and
+Sys., 2017, pp. 5211–5218.
+[20] R. K. Kumar, A. Ilie, J.-M. Frahm, and M. Pollefeys, “Simple
+calibration of non-overlapping cameras with a mirror,” in
+Proc. IEEE Conf. on Comput. Vision and Pattern Recog.,
+2008, pp. 1–7.
+[21] A. Robinson, M. Persson, and M. Felsberg, “Robust accurate
+extrinsic calibration of static non-overlapping cameras,” in
+Proc. Intl. Conf. Comput. Anal. Images Patterns, 2017, pp.
+342–353.
+[22] A. Geiger, F. Moosmann, Ö. Car, and B. Schuster, “Automatic
+camera and range sensor calibration using a single shot,” in
+Proc. IEEE Intl. Conf. on Robot. and Automat., 2012, pp.
+3936–3943.
+[23] L. Wiesmann, T. Läbe, L. Nunes, J. Behley, and C. Stachniss, “Joint intrinsic and extrinsic calibration of perception
+systems utilizing a calibration environment,” IEEE Robot. and
+Automat. Lett., vol. 9, no. 10, pp. 9103–9110, 2024.
+[24] J. Rehder, J. Nikolic, T. Schneider, T. Hinzmann, and R. Siegwart, “Extending kalibr: Calibrating the extrinsics of multiple
+imus and of individual axes,” in Proc. IEEE Intl. Conf. on
+Robot. and Automat., 2016, pp. 4304–4311.
+[25] C. Song, J. Shin, M.-H. Jeon, J. Lim, and A. Kim, “Unbiased
+estimator for distorted conics in camera calibration,” in Proc.
+IEEE Conf. on Comput. Vision and Pattern Recog., 2024, pp.
+373–381.
+[26] L. Oth, P. Furgale, L. Kneip, and R. Siegwart, “Rolling shutter
+camera calibration,” in Proc. IEEE Conf. on Comput. Vision
+and Pattern Recog., 2013, pp. 1360–1367.
+[27] J. Jeong, Y. Cho, and A. Kim, “The road is enough! extrinsic
+calibration of non-overlapping stereo camera and lidar using
+road information,” IEEE Robot. and Automat. Lett., vol. 4,
+no. 3, pp. 2831–2838, 2019.
+[28] H. Nguyen and Q.-C. Pham, “On the covariance of X in
+AX=XB,” IEEE Trans. Robot., vol. 34, no. 6, pp. 1651–1658,
+2018.
+[29] T. D. Barfoot and P. T. Furgale, “Associating uncertainty with
+three-dimensional poses for use in estimation problems,” IEEE
+Trans. Robot., vol. 30, no. 3, pp. 679–693, 2014.
+[30] Z. Zhang, “A flexible new technique for camera calibration,”
+IEEE Trans. Pattern Analysis and Machine Intell., vol. 22,
+no. 11, pp. 1330–1334, 2000.
+
+
